@@ -224,6 +224,10 @@ h1{font-family:var(--mono);font-weight:700;font-size:clamp(24px,3.4vw,32px);lett
           <span class="pill" id="micp" data-on="1"><svg><use href="#ic-mic"/></svg><span id="mictext">Mic on</span></span>
         </div>
       </div>
+      <div class="voice" id="voice" data-live="0" aria-live="polite">
+        <span class="sp"><svg class="i"><use href="#ic-vol"/></svg></span>
+        <div id="vbody"><div class="idle">No power — connect B+ to start</div></div>
+      </div>
       <div class="scn">
         <button type="button" onclick="scenario('bench')">Bench: B+ and ACC together</button>
         <button type="button" onclick="scenario('engineoff')">Engine off</button>
