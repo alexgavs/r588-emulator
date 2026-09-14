@@ -58,13 +58,11 @@ h1{font-family:var(--mono);font-weight:700;font-size:clamp(24px,3.4vw,32px);lett
 .camshot img{display:block;width:100%;height:auto}
 .led{position:absolute;left:71.9%;top:62.2%;transform:translate(-50%,-50%);width:12px;height:12px;border-radius:50%;
      background:#5A6676;box-shadow:0 0 0 2px rgba(255,255,255,.7);transition:background var(--t)}
-.led.bblue{animation:bblue 1s steps(1,end) infinite}
-@keyframes bblue{0%,49%{background:#2E7DFF;box-shadow:0 0 10px #2E7DFF,0 0 0 2px rgba(255,255,255,.7)}
-                 50%,100%{background:#3A4453;box-shadow:0 0 0 2px rgba(255,255,255,.7)}}
-.led.bbr{animation:bbr 1s steps(1,end) infinite}
-@keyframes bbr{0%,49%{background:#2E7DFF;box-shadow:0 0 10px #2E7DFF,0 0 0 2px rgba(255,255,255,.7)}
-               50%,100%{background:#FF3B30;box-shadow:0 0 10px #FF3B30,0 0 0 2px rgba(255,255,255,.7)}}
-.led.rconst{background:#FF3B30;box-shadow:0 0 10px #FF3B30,0 0 0 2px rgba(255,255,255,.7)}
+.led.blue1s{animation:blue1s 2s steps(1,end) infinite}
+@keyframes blue1s{0%,49%{background:#2E7DFF;box-shadow:0 0 10px #2E7DFF,0 0 0 2px rgba(255,255,255,.7)}
+                  50%,100%{background:#3A4453;box-shadow:0 0 0 2px rgba(255,255,255,.7)}}
+.led.blueon{background:#2E7DFF;box-shadow:0 0 10px #2E7DFF,0 0 0 2px rgba(255,255,255,.7)}
+.led.redon{background:#FF3B30;box-shadow:0 0 10px #FF3B30,0 0 0 2px rgba(255,255,255,.7)}
 /* the physical button, clickable on the photo */
 .camkey{position:absolute;left:81.0%;top:62.2%;transform:translate(-50%,-50%);
   width:12.6%;height:10.5%;border:0;border-radius:7px;background:transparent;cursor:pointer;padding:0;
@@ -149,6 +147,12 @@ h1{font-family:var(--mono);font-weight:700;font-size:clamp(24px,3.4vw,32px);lett
 .ptoggle[aria-pressed="true"]{background:var(--o)}
 .ptoggle[aria-pressed="true"]::after{transform:translateX(22px)}
 .pcheck{color:var(--o);font-size:20px;line-height:1;font-weight:700}
+.poff{background:#fff;border-radius:10px;margin:14px 12px 0;padding:34px 22px;text-align:center}
+.poff svg{width:42px;height:42px;stroke:#C9C9CE;stroke-width:1.6;fill:none;margin-bottom:14px}
+.pofft{font-size:17px;font-weight:500;color:#1a1a1a}
+.poffd{font-size:13.5px;color:#8A8A8E;margin-top:8px;line-height:1.5}
+.poffb{margin-top:16px;display:inline-block;font-family:var(--mono);font-size:11.5px;color:var(--o);
+       border:1px solid var(--o);border-radius:8px;padding:7px 13px}
 /* recorder */
 .now{margin:14px 18px 0;padding:13px 15px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r)}
 .badge{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:11px;font-weight:600;padding:4px 9px;border-radius:6px}
@@ -334,8 +338,9 @@ h1{font-family:var(--mono);font-weight:700;font-size:clamp(24px,3.4vw,32px);lett
     (<b>5000 ms</b> — short press toggles Wi-Fi, longer restores factory settings), the Wi-Fi switch behaviour,
     every settings list and factory default in the app (they are the firmware's own option tables), the recording
     folders and bitrates, and the voice files and where they are played.
-    <br><br><b>Indicator</b> follows the R588 manual: blinking blue while recording with no phone connected,
-    blinking blue and red while recording with the phone connected, constant red when not recording.
+    <br><br><b>Indicator.</b> One blue LED: it blinks once a second while recording and goes dark when recording
+    stops — confirmed both in the firmware and on the device. The red LED is lit by the bootloader during a firmware
+    update. Note that a stopped recording shows the same dark LED as a camera with no power.
     <br><br><b>Taken from observation, not yet from the code:</b> the Wi-Fi idle shutdown after a few minutes of driving.
   </div>
 </div>
@@ -533,16 +538,13 @@ function transition(prev,next){
 }
 function refresh(sound){
   const prev=S.mode, next=computeMode(), waking=!!S.waking;
-  $("mdot").style.background = {OFF:"#5A6676",SLEEP:"#FF3B30",DRIVING:"#2E7DFF",PARKING:"#2E7DFF"}[next];
+  $("mdot").style.background = {OFF:"#5A6676",SLEEP:"#5A6676",DRIVING:"#2E7DFF",PARKING:"#2E7DFF"}[next];
   $("mtext").textContent = waking?"WAKE":next;
-  /* indicator per the R588 manual:
-     blinking blue      = recording, phone not connected
-     blinking blue+red  = recording, phone connected
-     constant red       = not recording                      */
-  const isRec = (next==="DRIVING"||next==="PARKING"||waking), phoneOn = S.wifi;
-  $("led").className = next==="OFF" ? "led"
-    : isRec ? (phoneOn ? "led bbr" : "led bblue")
-    : "led rconst";
+  /* indicator exactly as the firmware drives it: one blue LED on GPIO 4/5
+     recording -> blink once a second (20 ticks x 50 ms) · not recording -> dark
+     (the red LED is lit by the bootloader during a firmware update, not by the app) */
+  const isRec = (next==="DRIVING"||next==="PARKING"||waking);
+  $("led").className = next==="OFF" ? "led" : isRec ? "led blue1s" : "led";
   $("recline").innerHTML = waking?"<b>REC</b> impact clip → Event/F + Event/R"
     : next==="OFF"?"no power — connect B+"
     : next==="DRIVING"?"<b>REC</b> normal loop → Normal/F + Normal/R"
@@ -559,9 +561,10 @@ function refresh(sound){
   cn.dataset.on=wifiOn?"1":"0";
   $("conntext").textContent=wifiOn?"Connected · "+SSID:"Camera offline — Wi-Fi off";
   if(wifiOn!==lastWifi){
-    logEl("", wifiOn?`<span style="color:var(--drive-ink)">Wi-Fi AP on — the phone app can connect</span>`
-                    :`<span style="color:var(--ink-3)">Wi-Fi off${wifiReason}</span>`);
+    logEl("", wifiOn?`<span style="color:var(--drive-ink)">Wi-Fi on — Samsonix Pro reconnects</span>`
+                    :`<span style="color:var(--ink-3)">Wi-Fi off${wifiReason} — Samsonix Pro disconnects</span>`);
     lastWifi=wifiOn; wifiReason="";
+    if(typeof appRender==="function") appRender();
   }
   const mic=!!cfg("AUDIO"), mp=$("micp");
   mp.dataset.on=mic?"1":"0";
@@ -662,8 +665,20 @@ function rowHTML(k){
       <span class="pv">${valLabel(k)}</span><span class="pchev">&rsaquo;</span></button>`
       + (c.hint?`<div class="phint">${c.hint}</div>`:"");
 }
+function appConnected(){ return S.mode!=="OFF" && S.wifi; }
 function appRender(){
   const t=$("ptitle"), b=$("pbody"), back=$("pback");
+  if(!appConnected()){
+    t.textContent="settings"; back.hidden=true; appNav=null;
+    b.innerHTML=`<div class="poff">
+        <svg><use href="#ic-wifi-off"/></svg>
+        <div class="pofft">Camera not connected</div>
+        <div class="poffd">The camera's Wi-Fi is off, so the app cannot reach it.<br>
+        Press the button on the camera to switch Wi-Fi back on — the app reconnects by itself.</div>
+        <div class="poffb">waiting for ${SSID}</div>
+      </div>`;
+    return;
+  }
   if(appNav===null){
     t.textContent="settings"; back.hidden=true;
     b.innerHTML=`<div class="plist">${MENU.map(rowHTML).join("")}</div>`;
