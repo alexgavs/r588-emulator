@@ -58,13 +58,13 @@ h1{font-family:var(--mono);font-weight:700;font-size:clamp(24px,3.4vw,32px);lett
 .camshot img{display:block;width:100%;height:auto}
 .led{position:absolute;left:71.9%;top:62.2%;transform:translate(-50%,-50%);width:12px;height:12px;border-radius:50%;
      background:#5A6676;box-shadow:0 0 0 2px rgba(255,255,255,.7);transition:background var(--t)}
-.led.blue{background:#2E7DFF;box-shadow:0 0 10px #2E7DFF,0 0 0 2px rgba(255,255,255,.7)}
-.led.red{background:#FF3B30;box-shadow:0 0 11px #FF3B30,0 0 0 2px rgba(255,255,255,.7)}
-.led.pulse{animation:pulse 1.2s ease-in-out infinite}
-.led.breathe{animation:breathe 3.2s ease-in-out infinite}
-.led.fast{animation:pulse .45s ease-in-out infinite}
-@keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
-@keyframes breathe{0%,100%{opacity:.9}50%{opacity:.3}}
+.led.bblue{animation:bblue 1s steps(1,end) infinite}
+@keyframes bblue{0%,49%{background:#2E7DFF;box-shadow:0 0 10px #2E7DFF,0 0 0 2px rgba(255,255,255,.7)}
+                 50%,100%{background:#3A4453;box-shadow:0 0 0 2px rgba(255,255,255,.7)}}
+.led.bbr{animation:bbr 1s steps(1,end) infinite}
+@keyframes bbr{0%,49%{background:#2E7DFF;box-shadow:0 0 10px #2E7DFF,0 0 0 2px rgba(255,255,255,.7)}
+               50%,100%{background:#FF3B30;box-shadow:0 0 10px #FF3B30,0 0 0 2px rgba(255,255,255,.7)}}
+.led.rconst{background:#FF3B30;box-shadow:0 0 10px #FF3B30,0 0 0 2px rgba(255,255,255,.7)}
 /* the physical button, clickable on the photo */
 .camkey{position:absolute;left:81.0%;top:62.2%;transform:translate(-50%,-50%);
   width:12.6%;height:10.5%;border:0;border-radius:7px;background:transparent;cursor:pointer;padding:0;
@@ -334,9 +334,9 @@ h1{font-family:var(--mono);font-weight:700;font-size:clamp(24px,3.4vw,32px);lett
     (<b>5000 ms</b> — short press toggles Wi-Fi, longer restores factory settings), the Wi-Fi switch behaviour,
     every settings list and factory default in the app (they are the firmware's own option tables), the recording
     folders and bitrates, and the voice files and where they are played.
-    <br><br><b>Not yet confirmed from the firmware:</b> the exact meaning of each indicator colour — the device has a
-    dual blue/red indicator, and the colour shown here for each mode is a placeholder until that part of the firmware
-    is decoded. The Wi-Fi idle shutdown is taken from observed behaviour on the device, not yet from the code.
+    <br><br><b>Indicator</b> follows the R588 manual: blinking blue while recording with no phone connected,
+    blinking blue and red while recording with the phone connected, constant red when not recording.
+    <br><br><b>Taken from observation, not yet from the code:</b> the Wi-Fi idle shutdown after a few minutes of driving.
   </div>
 </div>
 
@@ -533,12 +533,16 @@ function transition(prev,next){
 }
 function refresh(sound){
   const prev=S.mode, next=computeMode(), waking=!!S.waking;
-  $("mdot").style.background = waking?"#FF3B30":{OFF:"#5A6676",SLEEP:"#2E7DFF",DRIVING:"#FF3B30",PARKING:"#FF3B30"}[next];
+  $("mdot").style.background = {OFF:"#5A6676",SLEEP:"#FF3B30",DRIVING:"#2E7DFF",PARKING:"#2E7DFF"}[next];
   $("mtext").textContent = waking?"WAKE":next;
-  $("led").className = waking?"led red fast"
-    :next==="DRIVING"?"led red pulse"
-    :next==="PARKING"?"led red pulse"
-    :next==="SLEEP"?"led blue breathe":"led";
+  /* indicator per the R588 manual:
+     blinking blue      = recording, phone not connected
+     blinking blue+red  = recording, phone connected
+     constant red       = not recording                      */
+  const isRec = (next==="DRIVING"||next==="PARKING"||waking), phoneOn = S.wifi;
+  $("led").className = next==="OFF" ? "led"
+    : isRec ? (phoneOn ? "led bbr" : "led bblue")
+    : "led rconst";
   $("recline").innerHTML = waking?"<b>REC</b> impact clip → Event/F + Event/R"
     : next==="OFF"?"no power — connect B+"
     : next==="DRIVING"?"<b>REC</b> normal loop → Normal/F + Normal/R"
