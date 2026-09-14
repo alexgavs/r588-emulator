@@ -81,6 +81,16 @@ h1{font-family:var(--mono);font-weight:700;font-size:clamp(24px,3.4vw,32px);lett
 .holdbar{position:absolute;left:8%;right:8%;bottom:6%;height:5px;border-radius:3px;background:#00000026;overflow:hidden;opacity:0;transition:opacity var(--t)}
 .holdbar[data-on="1"]{opacity:1}
 .holdbar i{display:block;height:100%;width:0;background:var(--accent)}
+.holdbar[data-act="reset"] i{background:#be1e19}
+.holdlab{position:absolute;left:50%;bottom:11%;transform:translateX(-50%);
+  display:flex;gap:8px;align-items:baseline;white-space:nowrap;
+  padding:5px 10px;border-radius:999px;background:rgba(16,18,22,.82);backdrop-filter:blur(4px);
+  color:#fff;font-size:12px;letter-spacing:.02em;opacity:0;transition:opacity var(--t)}
+.holdlab[data-on="1"]{opacity:1}
+.holdlab b{font-variant-numeric:tabular-nums;font-weight:650;font-size:13px}
+.holdlab span{color:#b9c0cc}
+.holdlab[data-act="reset"]{background:rgba(190,30,25,.9)}
+.holdlab[data-act="reset"] span{color:#ffd9d6}
 .keyhint{margin:8px 18px 0;font-family:var(--mono);font-size:11px;color:var(--ink-3);text-align:center}
 .status{margin:12px 18px 0;padding:13px 15px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r)}
 .mline{font-family:var(--mono);font-weight:700;font-size:21px;display:flex;align-items:center;gap:9px;color:var(--ink)}
@@ -244,7 +254,8 @@ h1{font-family:var(--mono);font-weight:700;font-size:clamp(24px,3.4vw,32px);lett
         <button class="camkey" id="camkey" aria-label="Camera button: press for Wi-Fi, hold 5 s for factory reset"
                 onmousedown="holdStart(event)" onmouseup="holdEnd()" onmouseleave="holdEnd(1)"
                 ontouchstart="holdStart(event)" ontouchend="holdEnd()" ondblclick="event.stopPropagation()"></button>
-        <span class="holdbar" id="holdbar" data-on="0"><i id="holdfill"></i></span>
+        <span class="holdbar" id="holdbar" data-on="0" data-act="wifi"><i id="holdfill"></i></span>
+        <span class="holdlab" id="holdlab" data-on="0" data-act="wifi"><b id="holdsec">0.0 s</b><span id="holdact">release → Wi-Fi</span></span>
       </div>
       <div class="keyhint">press the button — short = Wi-Fi, hold 5 s = factory reset · <b style="color:var(--accent)">double-click the camera = impact</b></div>
       <div class="status">
@@ -668,17 +679,26 @@ let holdT0=0, holdRaf=0;
 function holdStart(ev){
   if(ev&&ev.preventDefault) ev.preventDefault();
   if(S.mode==="OFF"){ logEl("", `<span style="color:var(--ink-3)">button pressed — the camera has no power</span>`); return; }
-  holdT0=Date.now(); $("camkey").dataset.hold="1"; $("holdbar").dataset.on="1"; holdTick();
+  holdT0=Date.now(); $("camkey").dataset.hold="1";
+  $("holdbar").dataset.on="1"; $("holdlab").dataset.on="1"; holdTick();
 }
+/* the firmware knows exactly two outcomes for this button:
+   duration <= 5000 ms -> Wi-Fi toggle, longer -> factory reset. No power-off branch. */
 function holdTick(){
   if(!holdT0) return;
-  $("holdfill").style.width=Math.min(100,(Date.now()-holdT0)/5000*100)+"%";
+  const ms=Date.now()-holdT0, reset=ms>5000;
+  $("holdfill").style.width=Math.min(100,ms/5000*100)+"%";
+  $("holdsec").textContent=(ms/1000).toFixed(1)+" s";
+  $("holdact").textContent=reset?"release → FACTORY RESET"
+                                :`release → Wi-Fi ${S.wifi?"OFF":"ON"}`;
+  $("holdbar").dataset.act=$("holdlab").dataset.act=reset?"reset":"wifi";
   holdRaf=requestAnimationFrame(holdTick);
 }
 function holdEnd(cancel){
   if(!holdT0) return;
   const ms=Date.now()-holdT0; holdT0=0; cancelAnimationFrame(holdRaf);
-  $("camkey").dataset.hold="0"; $("holdbar").dataset.on="0"; $("holdfill").style.width="0";
+  $("camkey").dataset.hold="0"; $("holdbar").dataset.on="0"; $("holdlab").dataset.on="0";
+  $("holdfill").style.width="0";
   if(cancel) return;
   logEl("", `<b>Button</b> held ${(ms/1000).toFixed(1)} s`);
   if(ms>5000){
