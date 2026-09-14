@@ -329,6 +329,15 @@ h1{font-family:var(--mono);font-weight:700;font-size:clamp(24px,3.4vw,32px);lett
   </section>
 
   <div class="notes" id="notes"></div>
+  <div class="notes" style="border-left-color:var(--park);margin-top:16px">
+    <b>What this simulator is based on.</b> Taken from the firmware itself: the button threshold
+    (<b>5000 ms</b> — short press toggles Wi-Fi, longer restores factory settings), the Wi-Fi switch behaviour,
+    every settings list and factory default in the app (they are the firmware's own option tables), the recording
+    folders and bitrates, and the voice files and where they are played.
+    <br><br><b>Not yet confirmed from the firmware:</b> the exact meaning of each indicator colour — the device has a
+    dual blue/red indicator, and the colour shown here for each mode is a placeholder until that part of the firmware
+    is decoded. The Wi-Fi idle shutdown is taken from observed behaviour on the device, not yet from the code.
+  </div>
 </div>
 
 <script>
@@ -536,8 +545,9 @@ function refresh(sound){
     : next==="PARKING"?"<b>REC</b> time-lapse → Parking/F + Parking/R · "+PARKTXT[cfg("PARK_TIMER")]
     : "low power — impact detection "+(cfg("GSR_PARKING")?"armed":"OFF");
   if(next==="DRIVING" && prev!=="DRIVING"){ S.wifi=true; S.wifiT=0; }
-  if(next!=="DRIVING"){ if(S.wifi) wifiReason=" — parking security, saves battery"; S.wifi=false; }
-  const wifiOn=(next==="DRIVING" && S.wifi), w=$("wifi");
+  if(next!=="DRIVING" && prev==="DRIVING"){ if(S.wifi) wifiReason=" — ACC off, parking security"; S.wifi=false; }
+  if(next==="OFF") S.wifi=false;
+  const wifiOn=(next!=="OFF" && S.wifi), w=$("wifi");
   w.dataset.on=wifiOn?"1":"0";
   w.querySelector("use").setAttribute("href",wifiOn?"#ic-wifi":"#ic-wifi-off");
   $("wifitext").textContent=wifiOn?"Wi-Fi AP on · "+SSID:"Wi-Fi off";
@@ -613,9 +623,8 @@ function holdEnd(cancel){
     logEl("", `<span style="color:var(--accent)">over 5 s — factory reset</span>`);
     enqueue([{clip:"reset"}]); factoryReset(); return;
   }
-  if(S.mode!=="DRIVING"){ logEl("", `<span style="color:var(--ink-3)">Wi-Fi stays off while parked</span>`); return; }
   S.wifi=!S.wifi; S.wifiT=0;
-  if(!S.wifi) wifiReason=" — switched off with the button";
+  wifiReason=" — button";
   enqueue([{clip:S.wifi?"wifiOn":"wifiOff"}]);
   refresh(false);
 }
@@ -707,7 +716,7 @@ $("notes").innerHTML =
   and the impact wake, so the car is never left broadcasting while unattended.
   <br><br><b>The button.</b> Press the button on the camera photo: a <b>short press toggles Wi-Fi</b>, and
   <b>holding it longer than 5 seconds restores factory settings</b>. The <b>Samsonix Pro</b> app reaches the camera only
-  while the Wi-Fi access point is up — that is, while driving; in parking and sleep it shows as offline.
+  while the Wi-Fi access point is up — that is, while driving, or after you switch it back on with the button; otherwise it shows as offline.
   <br><br><b>App control.</b> The Samsonix Pro screens, labels, options and factory defaults are reproduced as they are on
   the device. and every change really drives the simulation:
   <code>Parking Monitor</code> = impact detection while parked · <code>Time lapse recording duration</code> = how long the
