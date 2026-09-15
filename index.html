@@ -1046,8 +1046,13 @@ function shakeCam(){
    The shipped firmware does neither of the last two: it writes a fixed 30 s clip on a wake
    and drops impacts entirely while the time-lapse is running. */
 function impact(){
-  if(S.mode==="OFF"||evt.active) return;
+  if(S.mode==="OFF"){ shakeCam(); logEl("", `<span style="color:var(--ink-3)">impact — the camera has no power</span>`); return; }
   shakeCam();
+  if(evt.active){
+    logEl("", `<b>G-sensor impact</b>`);
+    logEl("", `<span style="color:var(--ink-3)">already writing the clip from the previous impact — this one adds nothing</span>`);
+    return;
+  }
   const lapsing=(S.mode==="PARKING"), asleep=(S.mode==="SLEEP"), parked=lapsing||asleep;
   if(parked && !cfg("GSR_PARKING")){
     logEl("", `<b>G-sensor impact</b>`);
@@ -1131,7 +1136,8 @@ function holdEnd(cancel){
     enqueue([{clip:"emr"}]);
     if(rec.active){ closeSeg(); rec.active=false; }
     const asleep=(S.mode==="SLEEP");
-    evt={active:true,t:0,name:stamp(simMs),fromSleep:asleep};
+    evt={active:true,t:0,name:stamp(simMs),fromSleep:asleep,fromLapse:false,
+         seg:SHIPPED?30:cfg("SPLIT"),rate:mbps()};
     if(asleep) S.waking=true;
     logEl("ok","Writing protected Event clip");
     refresh(false); return;
