@@ -126,10 +126,6 @@ h1{font-family:var(--mono);font-weight:700;font-size:clamp(24px,3.4vw,32px);lett
 .holdbar{background-image:linear-gradient(90deg,transparent calc(50% - 1px),#00000040 calc(50% - 1px),#00000040 50%,transparent 50%),linear-gradient(90deg,transparent calc(83.3% - 1px),#00000040 calc(83.3% - 1px),#00000040 83.3%,transparent 83.3%)}
 .holdlab[data-act="emr"]{background:rgba(20,110,50,.9)}
 .chead{position:relative}
-.wirechip{margin-left:auto;font-family:var(--mono);font-size:10px;letter-spacing:.06em;
-  padding:2px 8px;border-radius:999px;border:1px solid var(--border);color:var(--ink-3);white-space:nowrap}
-.wirechip[data-w="3"]{border-color:#1a7f3733;background:#e9f7ee;color:#1a7f37}
-.wirechip[data-w="2"]{border-color:#e0b40055;background:#fff9e4;color:#8a6d00}
 .psu{margin-top:14px;padding-top:13px;border-top:1px solid var(--border)}
 .psuhd{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:9px;
   font-size:12px;letter-spacing:.03em;text-transform:uppercase;color:var(--ink-3)}
@@ -449,7 +445,7 @@ h1{font-family:var(--mono);font-weight:700;font-size:clamp(24px,3.4vw,32px);lett
     </section>
 
     <section class="card">
-      <div class="chead"><svg class="i sm"><use href="#ic-sliders"/></svg><h2>Wiring</h2><span class="wirechip" id="wirechip" data-w="off">no power</span></div>
+      <div class="chead"><svg class="i sm"><use href="#ic-sliders"/></svg><h2>Wiring</h2></div>
       <div class="pdesc">B+ powers the camera, ACC is the ignition.</div>
       <div class="ctrls">
         <div class="row">
@@ -574,7 +570,7 @@ const META={
 };
 
 let S={bplus:false,acc:false,mode:"OFF",waking:false,wifi:false,wifiT:0,
-       volt:12.6,lowT:0,lowcut:false,parkT:0,parkDone:false,twoWire:false};
+       volt:12.6,lowT:0,lowcut:false,parkT:0,parkDone:false};
 
 /* Cut-off thresholds are the three values the camera itself offers (paramdef value-set 34).
    How the firmware decides, from GAUGEMNG_LowPowerCheck:
@@ -859,7 +855,6 @@ function paintPsu(){
 }
 function computeMode(){
   if(!S.bplus || S.lowcut) return "OFF";
-  if(S.twoWire) return "DRIVING";   /* ACC events disabled at boot — it just records */
   if(S.acc) return "DRIVING";
   /* the time-lapse window is finite: when the configured duration is used up the camera
      stops recording and drops to sleep, still armed for impacts */
@@ -973,10 +968,6 @@ function refresh(sound){
   mp.querySelector("use").setAttribute("href",mic?"#ic-mic":"#ic-mic-off");
   $("mictext").textContent=mic?"Mic on":"Mic off";
   $("rowA").dataset.dim=S.bplus?"0":"1";
-  const wc=$("wirechip");
-  wc.dataset.w = !S.bplus ? "off" : S.twoWire ? "2" : "3";
-  wc.textContent = !S.bplus ? "no power" : S.twoWire ? "2-wire · ACC ignored" : "3-wire · ACC active";
-  wc.title = S.twoWire ? "The ACC line was dead when the camera booted, so the firmware disabled ignition events until the next power-up. Switch B+ off, turn ACC on, then B+ on again." : "";
   document.querySelectorAll("#chips .chip").forEach(el=>el.dataset.on=(el.dataset.s===next)?"1":"0");
   if(sound && next!==prev){
     logEl("", `<b>${prev} → ${next}</b>`);
@@ -994,22 +985,7 @@ function toggle(k){
   $(k==="bplus"?"swB":"swA").setAttribute("aria-pressed",S[k]);
   logEl("", `${k==="bplus"?"B+":"ACC"} <b>${S[k]?"ON":"OFF"}</b>`);
   if(k==="acc"&&!S.bplus) logEl("", `<span style="color:var(--ink-3)">no effect — the camera has no power without B+</span>`);
-  if(k==="bplus") bootWiring();
-  if(k==="acc"&&S.bplus&&S.twoWire)
-    logEl("", `<span style="color:var(--accent)">ignored — the camera booted with a dead ACC line and disabled ignition events.</span> <span style="color:var(--ink-3)">Switch B+ off, leave ACC on, switch B+ back on — or press <b>Bench: B+ &amp; ACC</b>.</span>`);
   refresh(true);
-}
-/* PDT_BOARD_ThreeLinesTwoLinesAdj @0x31d1c samples the ACC line right after boot and counts
-   how many of the first polls saw it live (0x31dcc). Once two polls are in (0x31e00) and the
-   count is still zero, it prints 'two lines disable accMsg' (0x31e20) and calls 0x164bc(0),
-   which switches ACC messages off for the rest of the session. A camera powered on without
-   ignition therefore ignores ACC entirely — it just records, whatever you do with the wire. */
-function bootWiring(){
-  if(!S.bplus){ S.twoWire=false; return; }
-  S.twoWire=!S.acc;
-  logEl("", S.twoWire
-    ? `<span style="color:var(--accent)">two-wire wiring detected — ACC line was dead at boot, so ACC events stay off until the next power-up</span>`
-    : `<span style="color:var(--ink-3)">three-wire wiring — ACC was live at boot, ignition events are active</span>`);
 }
 function shakeCam(){
   const c=document.querySelector(".camshot"); if(!c) return;
@@ -1106,7 +1082,6 @@ function scenario(kind){
   if(kind==="bench"){
     if(!S.acc){S.acc=true;$("swA").setAttribute("aria-pressed",true);}
     if(!S.bplus){S.bplus=true;$("swB").setAttribute("aria-pressed",true);}
-    bootWiring();
     logEl("","Bench — B+ and ACC connected together"); refresh(true);
   }
   if(kind==="engineoff"&&S.acc) toggle('acc');
