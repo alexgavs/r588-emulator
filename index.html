@@ -291,7 +291,7 @@ h1{font-family:var(--mono);font-weight:700;font-size:clamp(24px,3.4vw,32px);lett
   .lede{font-size:13.5px;line-height:1.5;margin:0 0 9px;max-width:112ch}
   .chips{margin:0}
   .layout{flex:1 1 auto;min-height:0;align-items:stretch;
-  grid-template-columns:minmax(0,370px) minmax(0,400px) minmax(0,1fr)}
+  grid-template-columns:minmax(0,430px) minmax(0,390px) minmax(0,1fr)}
   .left,.mid,.rcol{min-height:0;height:100%}
   .left{position:static;overflow:auto;overscroll-behavior:contain}
   .left>.card{flex:0 0 auto}
@@ -322,9 +322,7 @@ h1{font-family:var(--mono);font-weight:700;font-size:clamp(24px,3.4vw,32px);lett
   .left{gap:10px}
   .left .pdesc{display:none}
   .camshot{margin-top:8px}
-  /* never crop the photo: the LED and the button are positioned in percentages of it,
-     so the whole frame has to stay visible — shrink the box instead */
-  .camshot{width:min(100%,238px);margin-inline:auto}
+  /* the photo is never cropped or shrunk: the LED and the button sit on it in percentages */
   .keyhint{padding:5px 0 0;font-size:10px;line-height:1.4}
   .status{padding:7px 14px;gap:5px}
   .voice{padding:7px 14px;font-size:14px}
@@ -343,7 +341,6 @@ h1{font-family:var(--mono);font-weight:700;font-size:clamp(24px,3.4vw,32px);lett
 
 /* final trim so the wiring column ends exactly at the fold */
 @media(min-width:1080px) and (min-height:640px){
-  .camshot{width:min(100%,214px)}
   .ctrls .row{padding-block:5px}
   .meter{padding:4px}
   .meters{gap:6px}
@@ -779,6 +776,20 @@ setInterval(()=>{
   paintRec();
 },100);
 
+/* the app settings survive a reload: they are the camera's own parameters, and a client
+   poking at the simulator expects it to come back the way they left it */
+const LS="r588sim.settings";
+function saveCfg(){
+  try{ const o={}; for(const k in CFG) o[k]=CFG[k].v; localStorage.setItem(LS,JSON.stringify(o)); }
+  catch(e){}   /* private window, blocked storage — the simulator still works, it just forgets */
+}
+function loadCfg(){
+  try{
+    const o=JSON.parse(localStorage.getItem(LS)||"null");
+    if(o) for(const k in o) if(CFG[k] && typeof o[k]==="number") CFG[k].v=o[k];
+  }catch(e){}
+}
+function forgetCfg(){ try{ localStorage.removeItem(LS); }catch(e){} }
 function toggleNotes(){ document.body.classList.toggle("shownotes"); }
 function setVolt(v){ S.volt=+v; if(S.volt>=CUTOFF[cfg("LOW_POWER")]+0.2) S.lowT=0; paintPsu(); }
 function watts(){
@@ -1052,6 +1063,7 @@ function pick(k,v){
     /* the firmware announces the microphone switch: 0x34da4 plays audioOn.mp3,
        0x34dd8 plays audioOff.mp3, both right after writing the parameter */
     if(k==="AUDIO") enqueue([{clip:v?"audioOn":"audioOff"}]);
+    saveCfg();
     refresh(k==="PARK_TIMER"&&prevTimer!==v);
   }
   appNav=null; appRender();
@@ -1077,11 +1089,13 @@ function factoryReset(){
   const D={MEDIAMODE:6,SPLIT:60,AUDIO:1,GSR_DRIVE:1,GSR_PARKING:0,PARK_TIMER:0,
            LOW_FPS:333,MIRROR:1,FLIP:0,LOW_POWER:0,VOLUME:80};  /* = paramdef selVal */
   for(const k in D) CFG[k].v=D[k];
+  forgetCfg();
   appNav=null; appRender();
   logEl("", `<span class="cgi">reset.cgi</span>`);
   logEl("ok","Settings restored to factory defaults — Parking Monitor back to off");
   refresh(true);
 }
+loadCfg();
 appRender();
 $("notes").innerHTML =
  `<b>The rule.</b> Power comes from <b>B+</b>; <b>ACC</b> only selects the mode. Every transition is spoken
