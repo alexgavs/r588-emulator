@@ -340,6 +340,24 @@ h1{font-family:var(--mono);font-weight:700;font-size:clamp(24px,3.4vw,32px);lett
   .meter b{font-size:16px}
   .psufoot{margin-top:6px;font-size:11.5px;line-height:1.4}
 }
+
+/* final trim so the wiring column ends exactly at the fold */
+@media(min-width:1080px) and (min-height:640px){
+  .camshot{width:min(100%,214px)}
+  .ctrls .row{padding-block:5px}
+  .meter{padding:4px}
+  .meters{gap:6px}
+  .scn{padding:6px 14px 9px}
+  .scn button{padding:5px 4px}
+  .keyhint{font-size:9.5px}
+  .psufoot{line-height:1.35;font-size:11px}
+  .status{padding:6px 14px}
+  .voice{padding:6px 14px}
+  .chead{padding:8px 14px 0}
+  .psuhd{margin-bottom:6px}
+  .psu input[type=range]{height:14px}
+  .vscale{margin:-4px 0 5px}
+}
 </style>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
