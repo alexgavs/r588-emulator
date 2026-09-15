@@ -315,6 +315,29 @@ h1{font-family:var(--mono);font-weight:700;font-size:clamp(24px,3.4vw,32px);lett
   .pdesc{display:none}
   .chead{padding-top:11px}
 }
+
+/* The wiring column is the tallest of the three, so in viewport-fit mode it gets trimmed
+   until it clears the fold: the descriptions move to Notes and the photo scales with height. */
+@media(min-width:1400px) and (min-height:640px){
+  .left{gap:10px}
+  .left .pdesc{display:none}
+  .camshot{margin-top:8px}
+  .camshot img{max-height:min(12vh,142px);object-fit:cover;object-position:center 45%;width:100%}
+  .keyhint{padding:5px 0 0;font-size:10px;line-height:1.4}
+  .status{padding:7px 14px;gap:5px}
+  .voice{padding:7px 14px;font-size:14px}
+  .scn{padding:7px 14px 10px;gap:6px}
+  .scn button{padding:6px 4px;font-size:11.5px}
+  .chead{padding-top:10px}
+  .ctrls{padding-bottom:0}
+  .ctrls .row{padding-block:7px}
+  .psu{margin-top:8px;padding-top:8px}
+  .psu input[type=range]{height:16px}
+  .vscale{margin:-3px 0 7px}
+  .meter{padding:5px 4px}
+  .meter b{font-size:16px}
+  .psufoot{margin-top:6px;font-size:11.5px;line-height:1.4}
+}
 </style>
 
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
