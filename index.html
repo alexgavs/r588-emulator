@@ -32,6 +32,30 @@ svg.i.sm{width:16px;height:16px}
 .mid,.rcol{display:flex;flex-direction:column;gap:16px;min-width:0}
 .pdesc{padding:3px 18px 0;font-size:12px;color:var(--ink-3);line-height:1.45}
 @media(max-width:1280px){.layout{grid-template-columns:minmax(320px,360px) 1fr}.rcol{grid-column:1/-1}}
+
+/* On a desktop screen the whole console fits the viewport: the page itself never scrolls,
+   only the three long lists inside it do. Below this size the page goes back to normal flow. */
+@media(min-width:1400px) and (min-height:760px){
+  html,body{height:100%;overflow:hidden}
+  .wrap{max-width:1880px;height:100%;display:flex;flex-direction:column;padding-block:18px 16px}
+  header{margin-bottom:13px}
+  h1{font-size:25px;margin:0 0 4px}
+  .lede{font-size:13.5px;line-height:1.5;margin:0 0 9px;max-width:112ch}
+  .chips{margin:0}
+  .layout{flex:1 1 auto;min-height:0;align-items:stretch;
+    grid-template-columns:minmax(340px,390px) minmax(360px,420px) minmax(430px,1fr)}
+  .left,.mid,.rcol{min-height:0;height:100%}
+  .left{position:static;overflow:auto;overscroll-behavior:contain}
+  .left>.card{flex:0 0 auto}
+  .mid>.card{flex:1 1 auto;min-height:0;display:flex;flex-direction:column}
+  .phone{flex:1 1 auto;min-height:0;display:flex;flex-direction:column}
+  #pbody{max-height:none;flex:1 1 auto;min-height:0}
+  .rcol>.card{display:flex;flex-direction:column;min-height:0}
+  .rcol>.card:first-child{flex:1 1 42%}
+  .rcol>.card.log{flex:1 1 58%}
+  .clips{flex:1 1 auto;min-height:70px;overflow:auto;overscroll-behavior:contain}
+  .log ul{max-height:none;flex:1 1 auto;min-height:0}
+}
 @media(max-width:900px){.layout{grid-template-columns:1fr}.left{position:static}}
 #pbody{max-height:600px;overflow:auto;overscroll-behavior:contain}
 header{margin-bottom:24px}
@@ -617,8 +641,14 @@ setInterval(()=>{
       refresh(false);
     }
   }
-  /* battery protection: only a sustained sag counts, see CUTOFF above */
-  if(S.bplus){
+  /* Battery protection runs in the parking path only. It is armed inside PDT_UI_ProcLapseRec
+     (name string at 0x35160): once the parking timer is created, 0x35168 calls the enable
+     with 1, which stores the flag at 0x3c6e7c and clears the breach counter. That flag is
+     the only thing the sampling thread at 0xe7dc8 tests before it reads the ADC (0xe7e4c),
+     and nothing else in the image ever calls the enable — so with ACC on, nothing is
+     measured and the camera cannot cut itself off. A camera fed from 5 V skips the arming
+     entirely (0x350f0 -> '5v power...'). */
+  if(S.bplus && !S.acc){
     const th=CUTOFF[cfg("LOW_POWER")];
     if(!S.lowcut && S.volt<th){
       S.lowT+=0.1;
@@ -657,6 +687,7 @@ function paintPsu(){
   document.querySelectorAll(".meter").forEach(m=>m.dataset.warn=warn);
   $("psufoot").innerHTML =
     S.lowcut ? `<b>Battery protection tripped</b> — the camera cut itself off to leave the car startable. Raise the supply above ${th.toFixed(1)} V to bring it back.`
+    : (S.acc&&S.bplus) ? `<em>Battery protection is not armed with ACC on</em> — the camera only watches the supply once it enters the parking path.`
     : S.volt<th ? `Below the ${th.toFixed(1)} V threshold — the camera shuts down once the reading stays here (30-sample average, two checks in a row).`
     : S.volt<11.9 ? `Engine off, battery draining — protection trips at ${th.toFixed(1)} V.`
     : S.volt<13.0 ? `Engine off, battery healthy.` : `Engine running — the alternator is charging.`;
