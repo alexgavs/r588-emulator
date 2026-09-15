@@ -1,4 +1,4 @@
-<title>R588 Parking Logic</title>
+<meta charset="utf-8"><title>R588 Parking Logic</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Fira+Sans:wght@300;400;500;600;700&display=swap">
@@ -408,7 +408,7 @@ h1{font-family:var(--mono);font-weight:700;font-size:clamp(24px,3.4vw,32px);lett
 
 <div class="wrap">
   <header>
-    <div class="eyebrow">Samsonix · R588<button type="button" class="notesbtn" id="notesbtn" onclick="toggleNotes()">Notes</button><span class="fwsw" id="fwsw"><button type="button" data-v="1" aria-pressed="true" onclick="setShipped(1)">as shipped</button><button type="button" data-v="0" aria-pressed="false" onclick="setShipped(0)">with our fix</button></span></div>
+    <div class="eyebrow">Samsonix · R588<button type="button" class="notesbtn" id="notesbtn" onclick="toggleNotes()">Notes</button></div>
     <h1>R588 Parking Logic</h1>
     <p class="lede">What the camera does when the engine stops. <b>Parking Monitor</b> decides whether an impact is answered; <b>Time lapse</b> decides, separately, whether the parked camera keeps recording.</p>
     <div class="modes">
@@ -842,7 +842,7 @@ function saveCfg(){
   catch(e){}   /* private window, blocked storage — the simulator still works, it just forgets */
 }
 function loadCfg(){
-  try{ SHIPPED=localStorage.getItem("r588sim.shipped")!=="0"; }catch(e){}
+  /* "as shipped" mode retired — the simulator is the correct/ideal logic only. SHIPPED stays false. */
   try{
     const o=JSON.parse(localStorage.getItem(LS)||"null");
     if(o) for(const k in o) if(CFG[k] && typeof o[k]==="number") CFG[k].v=o[k];
@@ -851,7 +851,7 @@ function loadCfg(){
 function forgetCfg(){ try{ localStorage.removeItem(LS); }catch(e){} }
 /* which firmware the page is demonstrating: the one on the camera today, or the one we
    asked the vendor to build. Only the announcements differ; everything else is identical. */
-let SHIPPED=true;
+let SHIPPED=false;   /* the simulator opens on the correct/ideal logic ("with our fix"); "as shipped" is the contrast view. Timings stay hardware-derived in both. */
 function setShipped(v){
   SHIPPED=!!v;
   try{ localStorage.setItem("r588sim.shipped",SHIPPED?"1":"0"); }catch(e){}
