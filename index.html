@@ -567,10 +567,7 @@ const META={
   audioOn:{he:"",en:"microphone on"}, audioOff:{he:"",en:"microphone off"},
   startRec:{he:"",en:"recording started"}
 };
-/* Idle timeout of the AP. No constant for it exists anywhere in the firmware image
-   (searched: no wifi_idle / timeout string, no parameter) — this is the value measured
-   on a live camera, roughly a minute with no phone attached. */
-const WIFI_IDLE=60;
+
 let S={bplus:false,acc:false,mode:"OFF",waking:false,wifi:false,wifiT:0,
        volt:12.6,lowT:0,lowcut:false,parkT:0,parkDone:false};
 
@@ -641,7 +638,11 @@ let q=[],playing=false;
 let lastWifi=false, wifiReason="";
 
 const two=n=>String(n).padStart(2,"0");
-const stamp=ms=>{const d=new Date(ms);return `${d.getFullYear()}${two(d.getMonth()+1)}${two(d.getDate())}_${two(d.getHours())}${two(d.getMinutes())}${two(d.getSeconds())}`};
+/* exactly the camera's own pattern: xcam_dtcf_create_file_path @0xb3890 formats
+   '%4d_%02d_%02d_%02d%02d%02d_%02d' (@0x28b59a), the last pair being a counter for files
+   created inside the same second. Front and rear share the name; only the folder differs. */
+const stamp=ms=>{const d=new Date(ms);return `${d.getFullYear()}_${two(d.getMonth()+1)}_${two(d.getDate())}_`+
+  `${two(d.getHours())}${two(d.getMinutes())}${two(d.getSeconds())}_00`};
 const fmtMB=m=>m>=1024?(m/1024).toFixed(2)+" GB":Math.round(m)+" MB";
 const mmss=s=>Math.floor(s/60)+":"+two(Math.floor(s%60));
 const esc=s=>String(s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
@@ -653,9 +654,10 @@ function PROF(mode){
     spec:`front ${r.fl} · ${(r.f/1000).toFixed(1)} Mbps<br>rear ${r.rl}${audio}`};
   if(mode==="PARKING") return {folder:"Parking",cls:"parking",seg:cfg("SPLIT"),rate:mbps()*tlfps()/30,
     spec:`front ${r.fl.split(' · ')[0]} · ${tlfps()} fps time-lapse<br>rear ${r.rl.split(' · ')[0]} · ${tlfps()} fps${audio}`};
-  /* an impact clip runs for one loop segment, not some special event length —
-     measured on the bench: the woken camera writes for the Loop Recording Time and sleeps */
-  return {folder:"Event",cls:"event",seg:cfg("SPLIT"),rate:mbps(),
+  /* the impact clip length is its own parameter: record.[N].emr_time = 30 s, clamped to 60
+     (cmp r6,#0x3c @0xc7a78, '...max is 60s'). Pre-roll is 0: pre_emr_duration is 0 and is only
+     read when emr_type == 0, while this firmware ships emr_type = 1. */
+  return {folder:"Event",cls:"event",seg:30,rate:mbps(),
     spec:`front ${r.fl} · ${(r.f/1000).toFixed(1)} Mbps<br>rear ${r.rl}${audio}`};
 }
 function logEl(cls,html){
@@ -761,13 +763,12 @@ setInterval(()=>{
     rec.t+=0.1*SIM;
     if(rec.t>=PROF(rec.mode).seg){ closeSeg(); startSeg(); }
   }
-  if(S.mode!=="OFF" && S.wifi){          /* the AP idles out in every powered mode, ACC off included */
-    S.wifiT+=0.1;   /* real seconds, not the 12x recorder clock */
-    if(S.wifiT>=WIFI_IDLE){
-      S.wifi=false; wifiReason=" — AP idle timeout, no phone connected";
-      refresh(false);
-    }
-  }
+  /* The auto-off timer is 300 s (app_service_SetWifiAutoOffCheck @0x330ac, mov r2,#0x12c,
+     counter ticking once a second at 0x33118). It only fires when the access point has no
+     client at all — the count of associated stations is read from
+     /dev/wifi/hostapd/sta_num (0x33590) and a non-zero value keeps the AP up. The phone in
+     this simulator is always attached while the AP is on, so the timer never expires here;
+     on a camera nobody connects to, the AP goes down within five minutes of boot. */
   if(S.mode==="PARKING"){
     S.parkT+=0.1*SIM;
     if(S.parkT>=PARKSEC[cfg("PARK_TIMER")]){
@@ -940,8 +941,13 @@ function refresh(sound){
     S.wifi=true; S.wifiT=0; S.parkT=0; S.parkDone=false;
   }
   if(next==="OFF"){ S.parkT=0; S.parkDone=false; }
-  /* ACC off does NOT drop the AP — confirmed on a live camera: it keeps
-     broadcasting and only dies on its own idle timeout. */
+  /* The ignition drives the access point: ACC OFF sends ProcWifiSwitchEvent(3,0) -> wifi_stop
+     (0x35274 -> 0x35358) and ACC ON sends (3,1) (0x352f8). Source 3 plays no sound, so this
+     switching is silent. The branch that would merely notify the app instead of stopping the
+     radio is dead: its flag (g_ui+0x3c) is zero in .data and never written anywhere in .text.
+     A camera that booted without ACC live is a different case — the firmware detects two-wire
+     wiring and suppresses ACC events altogether, which is why our bench camera kept its AP up. */
+  if(next!=="DRIVING" && prev==="DRIVING" && S.wifi){ wifiReason=" — ignition off"; S.wifi=false; }
   if(next==="OFF") S.wifi=false;
   const wifiOn=(next!=="OFF" && S.wifi), w=$("wifi");
   w.dataset.on=wifiOn?"1":"0";
