@@ -1065,8 +1065,13 @@ function impact(){
     return;
   }
   logEl("", asleep?`<b>G-sensor impact</b> — the camera was powered down; the sensor boots it`:`<b>G-sensor impact</b>`);
-  enqueue(asleep&&SHIPPED ? transition("OFF","DRIVING").concat([{clip:"beep"},{clip:"emr"}])
-                          : [{clip:"beep"},{clip:"emr"}]);
+  /* Driving is the one case where the spoken confirmation is wrong: a pothole would make the
+     camera talk at the driver all the way home. Corrected, an impact on the move is a single
+     short beep; the shipped firmware follows du.mp3 with startEmrRec.mp3 every time. */
+  const voice = (!SHIPPED && S.mode==="DRIVING") ? [{clip:"beep"}]
+              : asleep&&SHIPPED ? transition("OFF","DRIVING").concat([{clip:"beep"},{clip:"emr"}])
+              : [{clip:"beep"},{clip:"emr"}];
+  enqueue(voice);
   if(rec.active){ closeSeg(); rec.active=false; }
   /* length and rate of the clip: the shipped 30 s at full bitrate, or one loop segment of
      normal-speed video the way the parking logic should behave */
