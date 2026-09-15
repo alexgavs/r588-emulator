@@ -894,8 +894,9 @@ function setVoiceIdle(){
      res/audio/accOff.mp3  sha256 f87d0ca2…  = the "מצב נסיעה" (driving mode) recording
    so the camera greets you with "parking mode" at power-on and says "driving mode" when the
    ignition goes off. There is no accOn.mp3 in the image at all, so ACC ON is silent.
-   FIXED is the mapping we asked the vendor for: a plain chime at power-on, the parking words
-   on ACC OFF, the driving words on ACC ON. */
+   FIXED is what the camera should say: at power-on it names the mode the ignition actually
+   selects and then confirms that recording started; afterwards every ignition change is
+   named as it happens. ACC off -> "parking mode", ACC on -> "driving mode". */
 function transition(prev,next){
   const boot = prev==="OFF" || (next==="DRIVING" && (prev==="PARKING"||prev==="SLEEP"));
   if(SHIPPED){
@@ -906,10 +907,12 @@ function transition(prev,next){
     if(next==="PARKING") return chime.concat([accOff,{clip:"lapse"}]);
     if(next==="SLEEP")   return chime.concat([accOff]);
   } else {
-    const chime = boot ? [{clip:"start"},{clip:"startRec"}] : [];
-    if(next==="DRIVING") return chime.concat([{clip:"driving"}]);
-    if(next==="PARKING") return chime.concat([{clip:"parking"},{clip:"lapse"}]);
-    if(next==="SLEEP")   return chime.concat([{clip:"parking",note:"then powers down, impact-armed"}]);
+    /* the mode first, then the confirmation that recording started */
+    const mode = next==="DRIVING" ? {clip:"driving"} : {clip:"parking"};
+    if(boot) return [mode,{clip:"startRec"}].concat(next==="PARKING"?[{clip:"lapse"}]:[]);
+    if(next==="DRIVING") return [mode];
+    if(next==="PARKING") return [mode,{clip:"lapse"}];
+    if(next==="SLEEP")   return [{clip:"parking",note:"then powers down, impact-armed"}];
   }
   return [];
 }
