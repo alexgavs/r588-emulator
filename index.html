@@ -689,7 +689,10 @@ function logEl(cls,html){
   ul.prepend(li);
 }
 function startSeg(){ rec.t=0; rec.name=stamp(simMs); }
-function closeSeg(){ if(!rec.active||rec.t<3) return; const p=PROF(rec.mode); addClip(p.folder,p.cls,rec.name,rec.t,rec.t*p.rate,false); }
+/* On a normal loop cycle a sub-3 s tail is dropped, but a power-down (LVP cut, B+ removed, ACC off,
+   parking window ended) passes force=true so the whole buffer is flushed to a file first — the last
+   clip is never lost on shutdown. */
+function closeSeg(force){ if(!rec.active||(rec.t<3&&!force)) return; const p=PROF(rec.mode); addClip(p.folder,p.cls,rec.name,rec.t,rec.t*p.rate,false); }
 function addClip(folder,cls,name,dur,size,locked){
   card.clips.unshift({folder,cls,name,dur,size,locked}); card.used+=size;
   while(card.used>CAP){
@@ -739,7 +742,7 @@ function setRecording(mode){
   if(ota.active){ if(rec.active){ rec.active=false; } paintRec(); return; }
   if(evt.active){ paintRec(); return; }
   const want=(mode==="DRIVING"||mode==="PARKING");
-  if(rec.active&&(!want||rec.mode!==mode)){ closeSeg(); rec.active=false; }
+  if(rec.active&&(!want||rec.mode!==mode)){ closeSeg(true); rec.active=false; }
   if(want&&!rec.active){ rec.active=true; rec.mode=mode; startSeg(); }
   paintRec();
 }
@@ -803,7 +806,7 @@ setInterval(()=>{
     S.parkT+=0.1*SIM;
     if(S.parkT>=PARKSEC[cfg("PARK_TIMER")]){
       S.parkDone=true; S.parkT=0;
-      if(rec.active){ closeSeg(); rec.active=false; }
+      if(rec.active){ closeSeg(true); rec.active=false; }
       logEl("ok",`Time-lapse window of ${PARKTXT[cfg("PARK_TIMER")]} used up — the camera powers itself down; the G-sensor stays armed and boots it on an impact`);
       refresh(false);
     }
@@ -826,7 +829,7 @@ setInterval(()=>{
            a word. Corrected, the driver is told before the camera goes. */
         if(!SHIPPED) enqueue([{clip:"powerOff"}]);
         else logEl("", `<span style="color:var(--ink-3)">no announcement — powerOff.mp3 is in the image but the firmware never plays it</span>`);
-        if(rec.active){ closeSeg(); rec.active=false; }
+        if(rec.active){ closeSeg(true); rec.active=false; }
         logEl("", `<span style="color:var(--ink-3)">clip closed, power latch released — the camera stays down until B+ is cycled or the ignition comes back</span>`);
         refresh(false);
       }
@@ -834,7 +837,8 @@ setInterval(()=>{
   } else S.lowT=0;
   /* No hysteresis exists: PDT_UI_PowerOff drops the power latch (writes 0 to 0x120b4020),
      so raising the supply again changes nothing — only re-applying power brings it back. */
-  if(S.lowcut && (!S.bplus || S.acc)) S.lowcut=false;
+  /* recovery from an LVP cut is handled in refresh() (ACC on / B+ reconnect), so it boots with the
+     startup notification instead of clearing here silently */
   paintPsu();
   paintRec();
 },100);
@@ -969,6 +973,10 @@ function transition(prev,next){
   return [];
 }
 function refresh(sound){
+  /* LVP recovery: ACC on (engine start) or a B+ reconnect releases the power latch here, before the
+     mode is recomputed — so the camera boots through the normal OFF->DRIVING transition below
+     (chime + startup voice + blue LED), exactly like a fresh power-on, instead of clearing silently. */
+  if(S.lowcut && (!S.bplus || S.acc)) S.lowcut=false;
   const prev=S.mode, next=computeMode(), waking=!!S.waking;
   $("mdot").style.background = {OFF:"#5A6676",SLEEP:"#5A6676",DRIVING:"#2E7DFF",PARKING:"#2E7DFF"}[next];
   $("mtext").textContent = waking?"WAKE":next;
@@ -1327,5 +1335,27 @@ setVoiceIdle(); paintRec(); paintClips(); refresh(false);
     if(now-last<450){ last=0; impact(); } else last=now;
   });
   cam.addEventListener("dblclick",()=>{ if(Date.now()-last>450) impact(); });
+})();
+
+/* Auto-update: GitHub Pages / the browser can serve a cached build, so the page polls its own
+   source and reloads the moment a newer version is deployed — no Ctrl+F5. SIM_BUILD is stamped
+   automatically on every deploy; the reload uses a ?v= query to bypass the cache for certain. */
+const SIM_BUILD="1789472672";
+(function(){
+  let busy=false;
+  async function check(){
+    if(busy||document.hidden) return; busy=true;
+    try{
+      const r=await fetch(location.pathname+"?_="+Date.now(),{cache:"no-store"});
+      if(r.ok){
+        const m=(await r.text()).match(/SIM_BUILD="(\d+)"/);
+        if(m&&m[1]&&m[1]!==SIM_BUILD){ location.replace(location.pathname+"?v="+m[1]); return; }
+      }
+    }catch(e){}
+    busy=false;
+  }
+  setTimeout(check,5000);
+  setInterval(check,60000);
+  document.addEventListener("visibilitychange",()=>{ if(!document.hidden) check(); });
 })();
 </script>
