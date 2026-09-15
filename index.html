@@ -125,6 +125,11 @@ h1{font-family:var(--mono);font-weight:700;font-size:clamp(24px,3.4vw,32px);lett
 /* the two thresholds drawn on the bar: 3 s and 5 s of a 6 s scale */
 .holdbar{background-image:linear-gradient(90deg,transparent calc(50% - 1px),#00000040 calc(50% - 1px),#00000040 50%,transparent 50%),linear-gradient(90deg,transparent calc(83.3% - 1px),#00000040 calc(83.3% - 1px),#00000040 83.3%,transparent 83.3%)}
 .holdlab[data-act="emr"]{background:rgba(20,110,50,.9)}
+.chead{position:relative}
+.wirechip{margin-left:auto;font-family:var(--mono);font-size:10px;letter-spacing:.06em;
+  padding:2px 8px;border-radius:999px;border:1px solid var(--border);color:var(--ink-3);white-space:nowrap}
+.wirechip[data-w="3"]{border-color:#1a7f3733;background:#e9f7ee;color:#1a7f37}
+.wirechip[data-w="2"]{border-color:#e0b40055;background:#fff9e4;color:#8a6d00}
 .psu{margin-top:14px;padding-top:13px;border-top:1px solid var(--border)}
 .psuhd{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:9px;
   font-size:12px;letter-spacing:.03em;text-transform:uppercase;color:var(--ink-3)}
@@ -444,7 +449,7 @@ h1{font-family:var(--mono);font-weight:700;font-size:clamp(24px,3.4vw,32px);lett
     </section>
 
     <section class="card">
-      <div class="chead"><svg class="i sm"><use href="#ic-sliders"/></svg><h2>Wiring</h2></div>
+      <div class="chead"><svg class="i sm"><use href="#ic-sliders"/></svg><h2>Wiring</h2><span class="wirechip" id="wirechip" data-w="off">no power</span></div>
       <div class="pdesc">B+ powers the camera, ACC is the ignition.</div>
       <div class="ctrls">
         <div class="row">
@@ -968,6 +973,10 @@ function refresh(sound){
   mp.querySelector("use").setAttribute("href",mic?"#ic-mic":"#ic-mic-off");
   $("mictext").textContent=mic?"Mic on":"Mic off";
   $("rowA").dataset.dim=S.bplus?"0":"1";
+  const wc=$("wirechip");
+  wc.dataset.w = !S.bplus ? "off" : S.twoWire ? "2" : "3";
+  wc.textContent = !S.bplus ? "no power" : S.twoWire ? "2-wire · ACC ignored" : "3-wire · ACC active";
+  wc.title = S.twoWire ? "The ACC line was dead when the camera booted, so the firmware disabled ignition events until the next power-up. Switch B+ off, turn ACC on, then B+ on again." : "";
   document.querySelectorAll("#chips .chip").forEach(el=>el.dataset.on=(el.dataset.s===next)?"1":"0");
   if(sound && next!==prev){
     logEl("", `<b>${prev} → ${next}</b>`);
@@ -987,7 +996,7 @@ function toggle(k){
   if(k==="acc"&&!S.bplus) logEl("", `<span style="color:var(--ink-3)">no effect — the camera has no power without B+</span>`);
   if(k==="bplus") bootWiring();
   if(k==="acc"&&S.bplus&&S.twoWire)
-    logEl("", `<span style="color:var(--ink-3)">ignored — the camera booted without ACC and runs in two-wire mode</span>`);
+    logEl("", `<span style="color:var(--accent)">ignored — the camera booted with a dead ACC line and disabled ignition events.</span> <span style="color:var(--ink-3)">Switch B+ off, leave ACC on, switch B+ back on — or press <b>Bench: B+ &amp; ACC</b>.</span>`);
   refresh(true);
 }
 /* PDT_BOARD_ThreeLinesTwoLinesAdj @0x31d1c samples the ACC line right after boot and counts
