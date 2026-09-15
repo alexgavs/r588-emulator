@@ -27,11 +27,11 @@ svg.i{width:20px;height:20px;flex:none;stroke:currentColor;fill:none;stroke-widt
 svg.i.sm{width:16px;height:16px}
 :focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-radius:6px}
 .wrap{max-width:1340px;margin:0 auto;padding-block:28px;padding-inline:20px}
-.layout{display:grid;grid-template-columns:minmax(330px,370px) minmax(330px,1fr) minmax(340px,1fr);gap:16px;align-items:start}
+.layout{display:grid;grid-template-columns:minmax(0,340px) minmax(0,1fr) minmax(0,1.1fr);gap:16px;align-items:start}
 .left{position:sticky;top:20px;display:flex;flex-direction:column;gap:16px}
 .mid,.rcol{display:flex;flex-direction:column;gap:16px;min-width:0}
 .pdesc{padding:3px 18px 0;font-size:12px;color:var(--ink-3);line-height:1.45}
-@media(max-width:1280px){.layout{grid-template-columns:minmax(320px,360px) 1fr}.rcol{grid-column:1/-1}}
+@media(max-width:1079px){.layout{grid-template-columns:minmax(0,360px) 1fr}.rcol{grid-column:1/-1}}
 
 title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -272,7 +272,7 @@ h1{font-family:var(--mono);font-weight:700;font-size:clamp(24px,3.4vw,32px);lett
 
 
 .notesbtn{display:none}
-@media(min-width:1400px) and (min-height:640px){
+@media(min-width:1080px) and (min-height:640px){
   .notesbtn{display:inline-block;margin-left:14px;border:1px solid var(--border);background:var(--surface);
     color:var(--ink-2);font:inherit;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;
     padding:3px 11px;border-radius:999px;cursor:pointer;vertical-align:1px}
@@ -283,7 +283,7 @@ h1{font-family:var(--mono);font-weight:700;font-size:clamp(24px,3.4vw,32px);lett
     border:1px solid var(--border);border-radius:16px;box-shadow:0 30px 90px #0f172a33}
   body.shownotes .notes>.card+.card{margin-top:16px}
 }
-@media(min-width:1400px) and (min-height:640px){
+@media(min-width:1080px) and (min-height:640px){
   html,body{height:100%;overflow:hidden}
   .wrap{max-width:1880px;height:100%;display:flex;flex-direction:column;padding-block:18px 16px}
   header{margin-bottom:13px}
@@ -291,7 +291,7 @@ h1{font-family:var(--mono);font-weight:700;font-size:clamp(24px,3.4vw,32px);lett
   .lede{font-size:13.5px;line-height:1.5;margin:0 0 9px;max-width:112ch}
   .chips{margin:0}
   .layout{flex:1 1 auto;min-height:0;align-items:stretch;
-    grid-template-columns:minmax(340px,390px) minmax(360px,420px) minmax(430px,1fr)}
+  grid-template-columns:minmax(0,370px) minmax(0,400px) minmax(0,1fr)}
   .left,.mid,.rcol{min-height:0;height:100%}
   .left{position:static;overflow:auto;overscroll-behavior:contain}
   .left>.card{flex:0 0 auto}
@@ -308,7 +308,7 @@ h1{font-family:var(--mono);font-weight:700;font-size:clamp(24px,3.4vw,32px);lett
 }
 /* a short desktop window (a laptop, or a browser with panels open) gives up the intro text
    and the descriptions rather than the working controls */
-@media(min-width:1400px) and (max-height:900px){
+@media(min-width:1080px) and (max-height:900px){
   .wrap{padding-block:12px}
   .lede{display:none}
   header{margin-bottom:10px}
@@ -318,7 +318,7 @@ h1{font-family:var(--mono);font-weight:700;font-size:clamp(24px,3.4vw,32px);lett
 
 /* The wiring column is the tallest of the three, so in viewport-fit mode it gets trimmed
    until it clears the fold: the descriptions move to Notes and the photo scales with height. */
-@media(min-width:1400px) and (min-height:640px){
+@media(min-width:1080px) and (min-height:640px){
   .left{gap:10px}
   .left .pdesc{display:none}
   .camshot{margin-top:8px}
