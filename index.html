@@ -550,7 +550,7 @@ h1{font-family:var(--mono);font-weight:700;font-size:clamp(24px,3.4vw,32px);lett
     </div>
   </section>
 
-  <div class="notes" id="notes"></div>
+  <div class="notes" id="rulenote"></div>
   <div class="notes" style="border-left-color:var(--park);margin-top:16px">
     <b>What this simulator is based on.</b> Taken from the firmware itself: the button threshold
     (<b>5000 ms</b> — short press toggles Wi-Fi, longer restores factory settings), the Wi-Fi switch behaviour,
@@ -560,6 +560,19 @@ h1{font-family:var(--mono);font-weight:700;font-size:clamp(24px,3.4vw,32px);lett
     stops — confirmed both in the firmware and on the device. The red LED is lit by the bootloader during a firmware
     update. Note that a stopped recording shows the same dark LED as a camera with no power.
     <br><br><b>Taken from observation, not yet from the code:</b> the Wi-Fi idle shutdown after a few minutes of driving.
+  </div>
+  <div class="notes" style="border-left-color:var(--drive);margin-top:16px">
+    <b>Device behaviour — developer reference.</b> The target (ideal) logic the camera should follow, the way this simulator runs it. Timings come from the firmware (address in brackets); where the shipped firmware differs, the deviation is noted so it gets fixed on the device, not copied.
+    <br><br><b>1 · Inputs &amp; power states.</b> Two wires decide everything: <code>B+</code> (constant 12&nbsp;V) and <code>ACC</code> (ignition); the state is derived. No <code>B+</code> or a tripped low-voltage latch &rarr; <b>OFF</b>. <code>ACC</code> on &rarr; <b>DRIVING</b>. <code>ACC</code> off with the parking timer still running &rarr; <b>PARKING</b> (time-lapse). <code>ACC</code> off otherwise &rarr; <b>SLEEP</b> (deep sleep, G-sensor armed).
+    <br><br><b>2 · Boot &amp; announcements.</b> Any entry from OFF and every ACC edge runs the power-on path: chime <code>start.mp3</code> (readiness only), then the mode word — <code>accOn.mp3</code> <span class="he">מצב נסיעה</span> on ACC on, <code>accOff.mp3</code> <span class="he">מצב חניה</span> on ACC off — then <code>startRec</code>. Recovery from a low-voltage cut is a full boot with the same notification, not a silent resume.
+    <br><br><b>3 · Recording &amp; files.</b> Loop segments of <code>Rec_Split_Time</code> go to <code>Normal/F</code>·<code>Normal/R</code>; protected clips to <code>Event/*</code>, parking clips to <code>Parking/*</code> (F=front, R=rear). Front 2560×1440@30, rear 1920×1080@25. On any power-down the current buffer is flushed to a file first (LVP cut, B+ removed, ACC off, parking window ending) so the last clip is never lost, even below the normal 3&nbsp;s minimum.
+    <br><br><b>4 · G-sensor (two independent levels).</b> <code>GSR_SENSITIVITY</code> (“G-Sensor Sensitivity”) is the <b>driving</b> impact level, default LOW — an impact while DRIVING writes an Event clip; if OFF, a driving impact does nothing. <code>GSR_PARKING</code> (app label “Parking Monitor”) is the <b>parking</b> level, default OFF — it gates whether a parked impact is answered. Both OFF/LOW/MIDDLE/HIGH. On the move the confirmation is a single short beep <code>du.mp3</code>.
+    <br><br><b>5 · Parking (ACC off).</b> Parking Monitor decides whether an impact is answered; Time-lapse decides, separately, whether the parked camera keeps recording. Monitor off + Lapse off &rarr; deep sleep, deaf, only the ignition wakes it. Monitor on + Lapse off &rarr; sleeps listening; an impact wakes it, records one <code>Rec_Split_Time</code>, sleeps again. Monitor on + Lapse on &rarr; time-lapse runs the window; an impact switches to normal 25/30&nbsp;fps for one <code>Rec_Split_Time</code>, then time-lapse resumes.
+    <br><br><b>6 · Low-voltage protection (LVP).</b> Guards the battery whenever the engine is off (<b>ACC off</b>, any parking/sleep state); with ACC on the alternator charges and LVP is not armed. Threshold <code>LOW_POWER_PROTECT</code> = 11.2 / 11.5 / 11.8&nbsp;V. The sampler averages 30 readings ~1.010&nbsp;s apart (<code>@0xe7ec0</code>) and needs <b>two consecutive averages</b> at/below the threshold before it cuts — about <b>61&nbsp;s</b>; one reading above resets the count. No hysteresis (<code>@0x120b4020</code>): raising the supply alone does not restore power — it comes back only on <b>ACC on</b> or a <b>B+ reconnect</b>, booting normally, and announces <code>powerOff.mp3</code> before it cuts. <span style="color:var(--ink-3)">Shipped: LVP is armed only on the parking-record path (<code>@0x3c6e7c</code>, gated by <code>lowFpsRecIng==1 @0x35214</code>) and never plays <code>powerOff.mp3</code> — both corrected here.</span>
+    <br><br><b>7 · Wi-Fi AP.</b> SSID <code>GKDVR_&lt;3-byte MAC&gt;</code>, WPA2, independent of the ignition; idles out after <b>60&nbsp;s</b> with nobody touching the app, the button brings it back. <span style="color:var(--ink-3)">Shipped: 300&nbsp;s (<code>@0x330ac</code>) and only while no station is associated, so with a phone attached it never expires.</span>
+    <br><br><b>8 · Button (single key, acted on release).</b> Under 3&nbsp;s (<code>0xbb8</code>) = manual emergency clip; 3–5&nbsp;s = Wi-Fi on/off; over 5&nbsp;s (<code>0x1388</code>) = factory reset (<code>@0xe787c</code>). No power-off branch.
+    <br><br><b>9 · LED.</b> One blue LED: blinks once a second while recording, dark when idle. Red is the bootloader during a firmware update, never the app.
+    <br><br><b>10 · App / backend interface.</b> HTTP CGI on port 80 (<code>/cgi-bin/hisnet/*.cgi</code>, <code>-type=</code>/<code>-value=</code>), live stream <code>rtsp://&lt;ip&gt;/livestream/1</code> on 554, no auth beyond WPA2 (client identified by IP). Events surface as <code>{"eventid":…,"arg1":…}</code>. No cloud path to the camera — all control is local.
   </div>
 </div>
 
@@ -1296,7 +1309,7 @@ function factoryReset(){
 loadCfg();
 document.querySelectorAll(".fwsw button").forEach(b=>b.setAttribute("aria-pressed",(b.dataset.v==="1")===SHIPPED));
 appRender();
-$("notes").innerHTML =
+$("rulenote").innerHTML =
  `<b>The rule.</b> Power comes from <b>B+</b>; <b>ACC</b> only selects the mode. Every transition is spoken
   <b>once</b>: <b>ACC ON → <span class="he">מצב נסיעה</span></b> (driving mode) ·
   <b>ACC OFF → <span class="he">מצב חניה</span></b> (parking mode, always), plus <b><span class="he">צילום בחניה פועל</span></b>
@@ -1340,7 +1353,7 @@ setVoiceIdle(); paintRec(); paintClips(); refresh(false);
 /* Auto-update: GitHub Pages / the browser can serve a cached build, so the page polls its own
    source and reloads the moment a newer version is deployed — no Ctrl+F5. SIM_BUILD is stamped
    automatically on every deploy; the reload uses a ?v= query to bypass the cache for certain. */
-const SIM_BUILD="1789472672";
+const SIM_BUILD="1789473763";
 (function(){
   let busy=false;
   async function check(){
