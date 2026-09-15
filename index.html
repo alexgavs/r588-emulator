@@ -752,11 +752,11 @@ setInterval(()=>{
   if(ota.active){ otaTick(); paintRec(); return; }
   if(evt.active){
     evt.t+=0.1*SIM;
-    if(evt.t>=PROF("EVENT").seg){
-      const p=PROF("EVENT");
-      addClip("Event","event",evt.name,p.seg,p.seg*p.rate,true);
-      const fs=evt.fromSleep; evt.active=false;
-      if(fs){ S.waking=false; logEl("ok","Event clip closed — camera back to sleep, G-sensor re-armed"); }
+    if(evt.t>=evt.seg){
+      addClip("Event","event",evt.name,evt.seg,evt.seg*evt.rate,true);
+      const fs=evt.fromSleep, fl=evt.fromLapse; evt.active=false;
+      if(fl) logEl("ok","Event clip closed — back to time-lapse for the rest of the window");
+      else if(fs){ S.waking=false; logEl("ok","Event clip closed — camera powers down again, G-sensor re-armed"); }
       else logEl("ok","Event clip closed — normal recording resumes");
       refresh(false);
     }
@@ -865,6 +865,7 @@ function drain(){
   if(playing) return;
   if(!q.length){ setVoiceIdle(); return; }
   const it=q.shift(); const m=META[it.clip];
+  if(it.wait){ playing=true; setTimeout(()=>{ playing=false; q.unshift(Object.assign({},it,{wait:0})); drain(); }, it.wait*1000); return; }
   const muted = cfg("VOLUME")===0;
   logEl("", `<span class="snd">${it.clip}.mp3</span>${m.he?` — <span dir="rtl">${m.he}</span>`:""} <span style="color:var(--ink-2)">(${m.en})</span>${muted?' <span style="color:var(--ink-3)">· muted by app setting</span>':''}${it.note?` · <span style="color:var(--ink-3)">${it.note}</span>`:''}`);
   if(muted){ setTimeout(drain,120); return; }
@@ -903,16 +904,23 @@ function transition(prev,next){
     const chime = boot ? [{clip:"parking",note:"start.mp3 — the file carries the parking words"},
                           {clip:"startRec"}] : [];
     if(next==="DRIVING") return chime;                       /* ACC ON says nothing */
-    const accOff = {clip:"driving",note:"accOff.mp3 — the file carries the driving words"};
-    if(next==="PARKING") return chime.concat([accOff,{clip:"lapse"}]);
-    if(next==="SLEEP")   return chime.concat([accOff]);
+    /* On the bench ACC OFF does not announce once: the camera says it three times, about ten
+       seconds apart, and then reboots — which is why the fourth thing you hear is the power-on
+       pair again. Reproduced here because it is what the camera does, not because it is right. */
+    const accOff = n => ({clip:"driving",wait:n,note:"accOff.mp3 — the file carries the driving words"});
+    const repeat = [accOff(0),accOff(10),accOff(10)];
+    const reboot = [{clip:"parking",wait:5,note:"start.mp3 — the camera has restarted"},{clip:"startRec"}];
+    if(next==="PARKING") return chime.concat(repeat,reboot,[{clip:"lapse"}]);
+    if(next==="SLEEP")   return chime.concat(repeat,reboot);
   } else {
-    /* the mode first, then the confirmation that recording started */
-    const mode = next==="DRIVING" ? {clip:"driving"} : {clip:"parking"};
-    if(boot) return [mode,{clip:"startRec"}].concat(next==="PARKING"?[{clip:"lapse"}]:[]);
-    if(next==="DRIVING") return [mode];
-    if(next==="PARKING") return [mode,{clip:"lapse"}];
-    if(next==="SLEEP")   return [{clip:"parking",note:"then powers down, impact-armed"}];
+    /* One rule, whatever caused the change — power-up, ignition on, ignition off: name the
+       mode the camera just entered, and confirm recording only when something really records.
+       Driving always records, so it is "driving mode" then "recording started". Parking with
+       the time-lapse on adds "parking recording on". Parking with the time-lapse off records
+       nothing at all, so the mode is announced and the camera goes quiet. */
+    if(next==="DRIVING") return [{clip:"driving"},{clip:"startRec"}];
+    if(next==="PARKING") return [{clip:"parking"},{clip:"lapse"}];
+    if(next==="SLEEP")   return [{clip:"parking",note:"nothing records — the camera sleeps, listening for an impact"}];
   }
   return [];
 }
@@ -995,15 +1003,20 @@ function shakeCam(){
   c.classList.remove("shake"); void c.offsetWidth; c.classList.add("shake");
   setTimeout(()=>c.classList.remove("shake"),600);
 }
+/* Parking Monitor decides whether an impact is answered at all; Time lapse decides, quite
+   separately, whether the parked camera keeps recording. The three combinations:
+     monitor off, lapse off  -> asleep and deaf: only the ignition brings it back
+     monitor on,  lapse off  -> asleep but listening: an impact wakes it, it records normal
+                                video for one Loop Recording Time and sleeps again
+     monitor on,  lapse on   -> time-lapse runs; an impact switches straight to normal
+                                25/30 fps for one Loop Recording Time, then the time-lapse
+                                picks up again for whatever is left of the window
+   The shipped firmware does neither of the last two: it writes a fixed 30 s clip on a wake
+   and drops impacts entirely while the time-lapse is running. */
 function impact(){
   if(S.mode==="OFF"||evt.active) return;
   shakeCam();
-  if(S.mode==="PARKING"){
-    logEl("", `<b>G-sensor impact</b>`);
-    logEl("", `<span style="color:var(--accent)">ignored — the time-lapse recording is running, the firmware drops impacts while it does</span>`);
-    return;
-  }
-  const asleep=(S.mode==="SLEEP"), parked=asleep;
+  const lapsing=(S.mode==="PARKING"), asleep=(S.mode==="SLEEP"), parked=lapsing||asleep;
   if(parked && !cfg("GSR_PARKING")){
     logEl("", `<b>G-sensor impact</b>`);
     logEl("", `<span style="color:var(--accent)">ignored — Parking monitor is OFF in the app</span>`);
@@ -1014,13 +1027,23 @@ function impact(){
     logEl("", `<span style="color:var(--accent)">ignored — Driving G-sensor is OFF in the app</span>`);
     return;
   }
+  if(lapsing && SHIPPED){
+    logEl("", `<b>G-sensor impact</b>`);
+    logEl("", `<span style="color:var(--accent)">ignored — the shipped firmware drops impacts while the time-lapse runs</span>`);
+    return;
+  }
   logEl("", asleep?`<b>G-sensor impact</b> — the camera was powered down; the sensor boots it`:`<b>G-sensor impact</b>`);
-  enqueue(asleep ? transition("OFF","DRIVING").concat([{clip:"beep"},{clip:"emr"}])
-                 : [{clip:"beep"},{clip:"emr"}]);
+  enqueue(asleep&&SHIPPED ? transition("OFF","DRIVING").concat([{clip:"beep"},{clip:"emr"}])
+                          : [{clip:"beep"},{clip:"emr"}]);
   if(rec.active){ closeSeg(); rec.active=false; }
-  evt={active:true,t:0,name:stamp(simMs),fromSleep:asleep};
+  /* length and rate of the clip: the shipped 30 s at full bitrate, or one loop segment of
+     normal-speed video the way the parking logic should behave */
+  const seg = SHIPPED ? 30 : cfg("SPLIT");
+  evt={active:true,t:0,name:stamp(simMs),fromSleep:asleep,fromLapse:lapsing,seg,rate:mbps()};
   if(asleep) S.waking=true;
-  logEl("ok", asleep?"Woken — writing protected Event clip (Wi-Fi stays off)":"Writing protected Event clip");
+  logEl("ok", lapsing ? `Time-lapse interrupted — recording the impact at full speed for ${mmss(seg)}`
+            : asleep  ? `Woken — recording normal video for ${mmss(seg)} (Wi-Fi stays off)`
+                      : `Writing protected Event clip`);
   refresh(false);
 }
 let holdT0=0, holdRaf=0;
