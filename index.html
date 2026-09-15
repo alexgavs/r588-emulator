@@ -322,7 +322,9 @@ h1{font-family:var(--mono);font-weight:700;font-size:clamp(24px,3.4vw,32px);lett
   .left{gap:10px}
   .left .pdesc{display:none}
   .camshot{margin-top:8px}
-  .camshot img{max-height:min(12vh,142px);object-fit:cover;object-position:center 45%;width:100%}
+  /* never crop the photo: the LED and the button are positioned in percentages of it,
+     so the whole frame has to stay visible — shrink the box instead */
+  .camshot{width:min(100%,238px);margin-inline:auto}
   .keyhint{padding:5px 0 0;font-size:10px;line-height:1.4}
   .status{padding:7px 14px;gap:5px}
   .voice{padding:7px 14px;font-size:14px}
