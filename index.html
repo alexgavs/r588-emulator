@@ -280,6 +280,12 @@ h1{font-family:var(--mono);font-weight:700;font-size:clamp(24px,3.4vw,32px);lett
 .fwsw button{border:0;background:var(--surface);color:var(--ink-3);font:inherit;font-size:10.5px;
   letter-spacing:.08em;text-transform:uppercase;padding:3px 10px;cursor:pointer}
 .fwsw button[aria-pressed="true"]{background:var(--primary);color:#fff}
+.modes{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:0 0 11px}
+.mcard{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--primary);
+  border-radius:10px;padding:8px 11px;min-width:0}
+.mcard b{display:block;font-family:var(--mono);font-size:11px;letter-spacing:.02em;color:var(--ink);margin-bottom:2px}
+.mcard span{display:block;font-size:12px;line-height:1.4;color:var(--ink-2)}
+@media(max-width:820px){.modes{grid-template-columns:1fr}}
 .notesbtn{display:none}
 @media(min-width:1080px) and (min-height:640px){
   .notesbtn{display:inline-block;margin-left:14px;border:1px solid var(--border);background:var(--surface);
@@ -320,6 +326,9 @@ h1{font-family:var(--mono);font-weight:700;font-size:clamp(24px,3.4vw,32px);lett
 @media(min-width:1080px) and (max-height:900px){
   .wrap{padding-block:12px}
   .lede{display:none}
+  .modes{gap:8px;margin-bottom:9px}
+  .mcard{padding:6px 9px}
+  .mcard span{font-size:11.5px;line-height:1.35}
   header{margin-bottom:10px}
   .pdesc{display:none}
   .chead{padding-top:11px}
@@ -401,7 +410,12 @@ h1{font-family:var(--mono);font-weight:700;font-size:clamp(24px,3.4vw,32px);lett
   <header>
     <div class="eyebrow">Samsonix · R588<button type="button" class="notesbtn" id="notesbtn" onclick="toggleNotes()">Notes</button><span class="fwsw" id="fwsw"><button type="button" data-v="1" aria-pressed="true" onclick="setShipped(1)">as shipped</button><button type="button" data-v="0" aria-pressed="false" onclick="setShipped(0)">with our fix</button></span></div>
     <h1>R588 Parking Logic</h1>
-    <p class="lede">How the camera should behave. Every mode change is spoken, so the driver <b>hears</b> which mode engaged — the recorder shows <b>what is written and where</b>, and the app panel below controls it like the phone app does. <b>B+</b> powers the camera; <b>ACC</b> only selects driving or parking.</p>
+    <p class="lede">What the camera does when the engine stops. <b>Parking Monitor</b> decides whether an impact is answered; <b>Time lapse</b> decides, separately, whether the parked camera keeps recording.</p>
+    <div class="modes">
+      <div class="mcard"><b>Monitor off · Lapse off</b><span>ACC off &rarr; sleeps and stays deaf. Only the ignition brings it back.</span></div>
+      <div class="mcard"><b>Monitor on · Lapse off</b><span>Sleeps, listening. An impact wakes it, it records normal video for one Loop Recording Time, then sleeps again.</span></div>
+      <div class="mcard"><b>Monitor on · Lapse on</b><span>Time-lapse runs for the chosen window. An impact switches to normal speed for one Loop Recording Time, then the time-lapse resumes.</span></div>
+    </div>
     <div class="chips" id="chips">
       <span class="chip" data-s="OFF"><i></i>OFF · no B+</span>
       <span class="chip" data-s="DRIVING"><i></i>DRIVING · ACC on</span>
