@@ -882,7 +882,7 @@ function paintPsu(){
   const left = (lbpArmed() && S.volt<=th && !S.lowcut) ? Math.ceil(LOW_HOLD-S.lowT) : 0;
   $("psufoot").innerHTML =
     left ? `<b>Powering down in ${left} s</b> — the reading has to stay at or below ${th.toFixed(1)} V the whole time; raise it and the count starts over.`
-    : S.lowcut ? `<b>Battery protection tripped</b> — the camera cut itself off to leave the car startable. Raise the supply above ${th.toFixed(1)} V to bring it back.`
+    : S.lowcut ? `<b>Battery protection tripped</b> — the camera cut itself off to leave the car startable. It comes back on <b>ACC on</b> (engine start) or a <b>B+ reconnect</b>; raising the supply alone won't (no hysteresis).`
     : (S.acc&&S.bplus) ? `<em>Battery protection is not armed with ACC on</em> — the alternator is charging; the camera watches the supply the moment ACC drops (any parking or sleep state).`
     : S.volt<th ? `Below the ${th.toFixed(1)} V threshold — the camera shuts down once the reading stays here (30-sample average, two checks in a row).`
     : S.volt<11.9 ? `Engine off, battery draining — protection trips at ${th.toFixed(1)} V.`
