@@ -569,7 +569,7 @@ const META={
 };
 
 let S={bplus:false,acc:false,mode:"OFF",waking:false,wifi:false,wifiT:0,
-       volt:12.6,lowT:0,lowcut:false,parkT:0,parkDone:false};
+       volt:12.6,lowT:0,lowcut:false,parkT:0,parkDone:false,twoWire:false};
 
 /* Cut-off thresholds are the three values the camera itself offers (paramdef value-set 34).
    How the firmware decides, from GAUGEMNG_LowPowerCheck:
@@ -854,6 +854,7 @@ function paintPsu(){
 }
 function computeMode(){
   if(!S.bplus || S.lowcut) return "OFF";
+  if(S.twoWire) return "DRIVING";   /* ACC events disabled at boot — it just records */
   if(S.acc) return "DRIVING";
   /* the time-lapse window is finite: when the configured duration is used up the camera
      stops recording and drops to sleep, still armed for impacts */
@@ -984,7 +985,22 @@ function toggle(k){
   $(k==="bplus"?"swB":"swA").setAttribute("aria-pressed",S[k]);
   logEl("", `${k==="bplus"?"B+":"ACC"} <b>${S[k]?"ON":"OFF"}</b>`);
   if(k==="acc"&&!S.bplus) logEl("", `<span style="color:var(--ink-3)">no effect — the camera has no power without B+</span>`);
+  if(k==="bplus") bootWiring();
+  if(k==="acc"&&S.bplus&&S.twoWire)
+    logEl("", `<span style="color:var(--ink-3)">ignored — the camera booted without ACC and runs in two-wire mode</span>`);
   refresh(true);
+}
+/* PDT_BOARD_ThreeLinesTwoLinesAdj @0x31d1c samples the ACC line right after boot and counts
+   how many of the first polls saw it live (0x31dcc). Once two polls are in (0x31e00) and the
+   count is still zero, it prints 'two lines disable accMsg' (0x31e20) and calls 0x164bc(0),
+   which switches ACC messages off for the rest of the session. A camera powered on without
+   ignition therefore ignores ACC entirely — it just records, whatever you do with the wire. */
+function bootWiring(){
+  if(!S.bplus){ S.twoWire=false; return; }
+  S.twoWire=!S.acc;
+  logEl("", S.twoWire
+    ? `<span style="color:var(--accent)">two-wire wiring detected — ACC line was dead at boot, so ACC events stay off until the next power-up</span>`
+    : `<span style="color:var(--ink-3)">three-wire wiring — ACC was live at boot, ignition events are active</span>`);
 }
 function shakeCam(){
   const c=document.querySelector(".camshot"); if(!c) return;
@@ -1079,8 +1095,9 @@ function holdEnd(cancel){
 }
 function scenario(kind){
   if(kind==="bench"){
-    if(!S.bplus){S.bplus=true;$("swB").setAttribute("aria-pressed",true);}
     if(!S.acc){S.acc=true;$("swA").setAttribute("aria-pressed",true);}
+    if(!S.bplus){S.bplus=true;$("swB").setAttribute("aria-pressed",true);}
+    bootWiring();
     logEl("","Bench — B+ and ACC connected together"); refresh(true);
   }
   if(kind==="engineoff"&&S.acc) toggle('acc');
