@@ -419,7 +419,7 @@ const META={
    on a live camera, roughly a minute with no phone attached. */
 const WIFI_IDLE=60;
 let S={bplus:false,acc:false,mode:"OFF",waking:false,wifi:false,wifiT:0,
-       volt:12.6,lowT:0,lowcut:false};
+       volt:12.6,lowT:0,lowcut:false,parkT:0,parkDone:false};
 
 /* Cut-off thresholds are the three values the camera itself offers (paramdef value-set 34).
    How the firmware decides, from GAUGEMNG_LowPowerCheck:
@@ -431,10 +431,16 @@ let S={bplus:false,acc:false,mode:"OFF",waking:false,wifi:false,wifiT:0,
 const CUTOFF=[11.2,11.5,11.8];
 const LOW_HOLD=3.0;          /* seconds sustained below threshold before the camera drops */
 
-/* Current draw per state. NOT from the firmware — nothing in the image reports consumption.
-   Bench estimates for a 12 V supply; replace with DP711 readings when we measure them. */
-const DRAW={OFF:0,SLEEP:25,PARKING:300,DRIVING:380,WAKE:420,OTA:350},
-      DRAW_WIFI=120;         /* the AP costs this much on top */
+/* Power per state, measured on the bench at 14 V. The camera runs off a switching
+   regulator, so power is the stable figure and current follows it: mA = W / V.
+     B+ and ACC on ................................. 3.0-3.3 W
+     ACC off, parking monitor off, time lapse off ... 0.1 mA at 14 V  (deep sleep)
+     ACC off, parking monitor on, woken by impact ... 2.0 W while it writes the clip
+     ACC off, time lapse running .................... 3.0 W
+   Splitting the driving figure into 3.0 W without Wi-Fi and 3.3 W with it is our reading
+   of that range — the two were not metered separately. OTA was never metered. */
+const WATT={OFF:0,SLEEP:0.0014,PARKING:3.0,DRIVING:3.0,WAKE:2.0,OTA:3.0},
+      WATT_WIFI=0.3;
 
 /* ---- Samsonix Pro settings — labels, order and defaults exactly as on the device ---- */
 const SSID="R588_0D8EC7", FWVER="R588_260911";
@@ -454,6 +460,7 @@ const CFG={
   VOLUME:{v:80,cgi:"VOLUME",label:"Volume",opts:[[0,"Mute"],[60,"low"],[80,"Medium"],[88,"High"]],vs:10}
 };
 const PARKTXT={0:"off",1:"15 min",2:"12 h",3:"24 h"};
+const PARKSEC={0:0,1:900,2:43200,3:86400};   /* the same durations in seconds */
 const MENU=["WIFI_NAME","WIFI_PW","MEDIAMODE","SPLIT","AUDIO","GSR_DRIVE","GSR_PARKING",
             "PARK_TIMER","LOW_FPS","MIRROR","FLIP","LOW_POWER","VOLUME","FORMAT","RESET","FW"];
 const RATE={4:{f:10240,r:10240,fl:"1920×1080 · 30 fps",rl:"1920×1080 · 25 fps"},
@@ -485,7 +492,9 @@ function PROF(mode){
     spec:`front ${r.fl} · ${(r.f/1000).toFixed(1)} Mbps<br>rear ${r.rl}${audio}`};
   if(mode==="PARKING") return {folder:"Parking",cls:"parking",seg:cfg("SPLIT"),rate:mbps()*tlfps()/30,
     spec:`front ${r.fl.split(' · ')[0]} · ${tlfps()} fps time-lapse<br>rear ${r.rl.split(' · ')[0]} · ${tlfps()} fps${audio}`};
-  return {folder:"Event",cls:"event",seg:30,rate:mbps(),
+  /* an impact clip runs for one loop segment, not some special event length —
+     measured on the bench: the woken camera writes for the Loop Recording Time and sleeps */
+  return {folder:"Event",cls:"event",seg:cfg("SPLIT"),rate:mbps(),
     spec:`front ${r.fl} · ${(r.f/1000).toFixed(1)} Mbps<br>rear ${r.rl}${audio}`};
 }
 function logEl(cls,html){
@@ -579,9 +588,9 @@ setInterval(()=>{
   if(ota.active){ otaTick(); paintRec(); return; }
   if(evt.active){
     evt.t+=0.1*SIM;
-    if(evt.t>=30){
+    if(evt.t>=PROF("EVENT").seg){
       const p=PROF("EVENT");
-      addClip("Event","event",evt.name,30,30*p.rate,true);
+      addClip("Event","event",evt.name,p.seg,p.seg*p.rate,true);
       const fs=evt.fromSleep; evt.active=false;
       if(fs){ S.waking=false; logEl("ok","Event clip closed — camera back to sleep, G-sensor re-armed"); }
       else logEl("ok","Event clip closed — normal recording resumes");
@@ -596,6 +605,15 @@ setInterval(()=>{
     if(S.wifiT>=WIFI_IDLE){
       S.wifi=false; wifiReason=" — AP idle timeout, no phone connected";
       enqueue([{clip:"wifiOff"}]);
+      refresh(false);
+    }
+  }
+  if(S.mode==="PARKING"){
+    S.parkT+=0.1*SIM;
+    if(S.parkT>=PARKSEC[cfg("PARK_TIMER")]){
+      S.parkDone=true; S.parkT=0;
+      if(rec.active){ closeSeg(); rec.active=false; }
+      logEl("ok",`Time-lapse window of ${PARKTXT[cfg("PARK_TIMER")]} used up — camera sleeps, G-sensor stays armed`);
       refresh(false);
     }
   }
@@ -624,17 +642,17 @@ setInterval(()=>{
 },100);
 
 function setVolt(v){ S.volt=+v; if(S.volt>=CUTOFF[cfg("LOW_POWER")]+0.2) S.lowT=0; paintPsu(); }
-function amps(){
+function watts(){
   if(S.mode==="OFF") return 0;
-  const base = ota.active ? DRAW.OTA : S.waking ? DRAW.WAKE : DRAW[S.mode];
-  return base + (S.wifi?DRAW_WIFI:0);
+  const base = ota.active ? WATT.OTA : S.waking ? WATT.WAKE : WATT[S.mode];
+  return base + (S.wifi?WATT_WIFI:0);
 }
 function paintPsu(){
-  const th=CUTOFF[cfg("LOW_POWER")], mA=amps(), V=S.mode==="OFF"?S.volt:S.volt;
+  const th=CUTOFF[cfg("LOW_POWER")], V=S.volt, W=watts(), mA=V?W/V*1000:0;
   $("cutlab").textContent="cut-off "+th.toFixed(1)+" V";
   $("mV").textContent=V.toFixed(2);
-  $("mA").textContent=Math.round(mA);
-  $("mW").textContent=(V*mA/1000).toFixed(2);
+  $("mA").textContent = mA>=10 ? Math.round(mA) : mA>0 ? mA.toFixed(2) : "0";
+  $("mW").textContent = W>=1 ? W.toFixed(2) : W>0 ? W.toFixed(4) : "0.00";
   const warn = S.lowcut?2 : S.volt<th?2 : S.volt<th+0.4?1 : 0;
   document.querySelectorAll(".meter").forEach(m=>m.dataset.warn=warn);
   $("psufoot").innerHTML =
@@ -646,7 +664,9 @@ function paintPsu(){
 function computeMode(){
   if(!S.bplus || S.lowcut) return "OFF";
   if(S.acc) return "DRIVING";
-  return cfg("PARK_TIMER")>0 ? "PARKING" : "SLEEP";
+  /* the time-lapse window is finite: when the configured duration is used up the camera
+     stops recording and drops to sleep, still armed for impacts */
+  return (cfg("PARK_TIMER")>0 && !S.parkDone) ? "PARKING" : "SLEEP";
 }
 function enqueue(items){ if(items&&items.length) q=q.concat(items); drain(); }
 function drain(){
@@ -707,7 +727,8 @@ function refresh(sound){
     : next==="DRIVING"?"<b>REC</b> normal loop → Normal/F + Normal/R"
     : next==="PARKING"?"<b>REC</b> time-lapse → Parking/F + Parking/R · "+PARKTXT[cfg("PARK_TIMER")]
     : "low power — impact detection "+(cfg("GSR_PARKING")?"armed":"OFF");
-  if(next==="DRIVING" && prev!=="DRIVING"){ S.wifi=true; S.wifiT=0; }
+  if(next==="DRIVING" && prev!=="DRIVING"){ S.wifi=true; S.wifiT=0; S.parkT=0; S.parkDone=false; }
+  if(next==="OFF"){ S.parkT=0; S.parkDone=false; }
   /* ACC off does NOT drop the AP — confirmed on a live camera: it keeps
      broadcasting and only dies on its own idle timeout. */
   if(next==="OFF") S.wifi=false;
