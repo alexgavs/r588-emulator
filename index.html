@@ -778,12 +778,19 @@ setInterval(()=>{
     rec.t+=0.1*SIM;
     if(rec.t>=PROF(rec.mode).seg){ closeSeg(); startSeg(); }
   }
-  /* The auto-off timer is 300 s (app_service_SetWifiAutoOffCheck @0x330ac, mov r2,#0x12c,
-     counter ticking once a second at 0x33118). It only fires when the access point has no
-     client at all — the count of associated stations is read from
-     /dev/wifi/hostapd/sta_num (0x33590) and a non-zero value keeps the AP up. The phone in
-     this simulator is always attached while the AP is on, so the timer never expires here;
-     on a camera nobody connects to, the AP goes down within five minutes of boot. */
+  /* Shipped: the timer is 300 s (app_service_SetWifiAutoOffCheck @0x330ac, mov r2,#0x12c,
+     ticking once a second at 0x33118) and it only counts while no station is associated —
+     the number is read from /dev/wifi/hostapd/sta_num (0x33590). With a phone attached it
+     never expires, and the ignition switches the radio instead.
+     Corrected: the access point is independent of the ignition, idles out after a minute of
+     nobody touching the app, and the camera button brings it back. */
+  if(!SHIPPED && S.mode!=="OFF" && S.wifi){
+    S.wifiT+=0.1;                       /* real seconds */
+    if(S.wifiT>=60){
+      S.wifi=false; S.wifiT=0; wifiReason=" — a minute idle";
+      refresh(false);
+    }
+  }
   if(S.mode==="PARKING"){
     S.parkT+=0.1*SIM;
     if(S.parkT>=PARKSEC[cfg("PARK_TIMER")]){
@@ -973,7 +980,7 @@ function refresh(sound){
      radio is dead: its flag (g_ui+0x3c) is zero in .data and never written anywhere in .text.
      A camera that booted without ACC live is a different case — the firmware detects two-wire
      wiring and suppresses ACC events altogether, which is why our bench camera kept its AP up. */
-  if(next!=="DRIVING" && prev==="DRIVING" && S.wifi){ wifiReason=" — ignition off"; S.wifi=false; }
+  if(SHIPPED && next!=="DRIVING" && prev==="DRIVING" && S.wifi){ wifiReason=" — ignition off"; S.wifi=false; }
   if(next==="OFF") S.wifi=false;
   const wifiOn=(next!=="OFF" && S.wifi), w=$("wifi");
   w.dataset.on=wifiOn?"1":"0";
@@ -1187,10 +1194,11 @@ function appRender(){
       (v===c.v?`<span class="pcheck">&#10003;</span>`:"")+`</button>`).join("")}</div>`;
   }
 }
-function appOpen(k){ appNav=k; appRender(); }
+function appOpen(k){ S.wifiT=0; appNav=k; appRender(); }
 function appBack(){ appNav=null; appRender(); }
 function appNote(l){ logEl("", `<span style="color:var(--ink-3)">${l} — not emulated</span>`); }
 function pick(k,v){
+  S.wifiT=0;                     /* the phone is in use, so the link is not idle */
   const c=CFG[k];
   if(c.v!==v){
     const prevTimer=cfg("PARK_TIMER"); c.v=v;
