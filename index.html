@@ -314,8 +314,8 @@ h1{font-family:var(--mono);font-weight:700;font-size:clamp(24px,3.4vw,32px);lett
   .phone{flex:1 1 auto;min-height:0;display:flex;flex-direction:column}
   #pbody{max-height:none;flex:1 1 auto;min-height:0}
   .rcol>.card{display:flex;flex-direction:column;min-height:0}
-  .rcol>.card:first-child{flex:1 1 42%}
-  .rcol>.card.log{flex:1 1 58%}
+  .rcol>.card:first-child{flex:1 1 60%}
+  .rcol>.card.log{flex:1 1 40%}
   .clips{flex:1 1 auto;min-height:70px;overflow:auto;overscroll-behavior:contain}
   .log ul{max-height:none;flex:1 1 auto;min-height:0}
   .camshot{margin-top:10px}
@@ -710,8 +710,9 @@ function paintRec(){
     const p=PROF("EVENT");
     b.className="badge event"; b.textContent="Event/F + Event/R · protected";
     n.textContent=evt.name+".TS";
-    s.innerHTML=p.spec+"<br>impact clip "+mmss(evt.t)+" / "+mmss(p.seg)+" · "+fmtMB(evt.t*p.rate);
-    bar.style.width=(evt.t/p.seg*100)+"%"; return;
+    const es=evt.seg||p.seg, er=evt.rate||p.rate;
+    s.innerHTML=p.spec+"<br>impact clip "+mmss(evt.t)+" / "+mmss(es)+" · "+fmtMB(evt.t*er);
+    bar.style.width=(evt.t/es*100)+"%"; return;
   }
   if(!rec.active){
     b.className="badge none"; b.textContent=S.mode==="SLEEP"?"armed — not recording":"not recording";
