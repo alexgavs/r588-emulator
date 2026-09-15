@@ -82,6 +82,24 @@ h1{font-family:var(--mono);font-weight:700;font-size:clamp(24px,3.4vw,32px);lett
 .holdbar[data-on="1"]{opacity:1}
 .holdbar i{display:block;height:100%;width:0;background:var(--accent)}
 .holdbar[data-act="reset"] i{background:#be1e19}
+.psu{margin-top:14px;padding-top:13px;border-top:1px solid var(--border)}
+.psuhd{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:9px;
+  font-size:12px;letter-spacing:.03em;text-transform:uppercase;color:var(--ink-3)}
+.psuhd .cut{text-transform:none;letter-spacing:0;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.psu input[type=range]{width:100%;margin:0;accent-color:var(--primary);height:22px}
+.vscale{display:flex;justify-content:space-between;font-size:11px;color:var(--ink-3);
+  font-variant-numeric:tabular-nums;margin:-2px 0 11px}
+.meters{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.meter{background:var(--surface-2,#f3f5f8);border:1px solid var(--border);border-radius:10px;
+  padding:9px 4px;text-align:center;line-height:1.15}
+.meter b{display:block;font-size:19px;font-weight:650;font-variant-numeric:tabular-nums;color:var(--ink)}
+.meter span{font-size:11px;color:var(--ink-3)}
+.meter[data-warn="1"]{border-color:#e0b400;background:#fff9e4}
+.meter[data-warn="2"]{border-color:#be1e19;background:#fdeceb}
+.meter[data-warn="2"] b{color:#be1e19}
+.psufoot{margin-top:9px;font-size:12px;line-height:1.45;color:var(--ink-3)}
+.psufoot b{color:#be1e19;font-weight:600}
+.psufoot em{font-style:normal;color:var(--ink-2)}
 .holdlab{position:absolute;left:50%;bottom:11%;transform:translateX(-50%);
   display:flex;gap:8px;align-items:baseline;white-space:nowrap;
   padding:5px 10px;border-radius:999px;background:rgba(16,18,22,.82);backdrop-filter:blur(4px);
@@ -292,6 +310,22 @@ h1{font-family:var(--mono);font-weight:700;font-size:clamp(24px,3.4vw,32px);lett
           <button type="button" class="sw g" id="swA" aria-pressed="false" aria-label="ACC ignition" onclick="toggle('acc')"></button>
         </div>
       </div>
+
+      <div class="psu">
+        <div class="psuhd">
+          <span>Bench supply</span>
+          <span class="cut" id="cutlab">cut-off 11.8 V</span>
+        </div>
+        <input type="range" id="vslide" min="9" max="15" step="0.1" value="12.6"
+               oninput="setVolt(this.value)" aria-label="Supply voltage">
+        <div class="vscale"><span>9 V</span><span>12 V</span><span>15 V</span></div>
+        <div class="meters">
+          <div class="meter"><b id="mV">12.60</b><span>V</span></div>
+          <div class="meter"><b id="mA">0</b><span>mA</span></div>
+          <div class="meter"><b id="mW">0.00</b><span>W</span></div>
+        </div>
+        <div class="psufoot" id="psufoot">Engine running — 12.6 V is a healthy alternator.</div>
+      </div>
     </section>
     </aside>
 
@@ -384,7 +418,23 @@ const META={
    (searched: no wifi_idle / timeout string, no parameter) — this is the value measured
    on a live camera, roughly a minute with no phone attached. */
 const WIFI_IDLE=60;
-let S={bplus:false,acc:false,mode:"OFF",waking:false,wifi:false,wifiT:0};
+let S={bplus:false,acc:false,mode:"OFF",waking:false,wifi:false,wifiT:0,
+       volt:12.6,lowT:0,lowcut:false};
+
+/* Cut-off thresholds are the three values the camera itself offers (paramdef value-set 34).
+   How the firmware decides, from GAUGEMNG_LowPowerCheck:
+     0xe7f04..0xe7f20  averages 30 consecutive samples  (cmp #0x1d / mov #0x1e / sdiv)
+     0xe7f40           compares that average with the configured threshold (cmp r4,r0 / bgt)
+     0xe7f54..0xe7f60  needs TWO consecutive breaches before it sends the B+ low-power message
+   So a dip does nothing: the supply has to stay down. The sample interval is not in the
+   image, so the 3 s used here is a stand-in, not a measured figure. */
+const CUTOFF=[11.2,11.5,11.8];
+const LOW_HOLD=3.0;          /* seconds sustained below threshold before the camera drops */
+
+/* Current draw per state. NOT from the firmware — nothing in the image reports consumption.
+   Bench estimates for a 12 V supply; replace with DP711 readings when we measure them. */
+const DRAW={OFF:0,SLEEP:25,PARKING:300,DRIVING:380,WAKE:420,OTA:350},
+      DRAW_WIFI=120;         /* the AP costs this much on top */
 
 /* ---- Samsonix Pro settings — labels, order and defaults exactly as on the device ---- */
 const SSID="R588_0D8EC7", FWVER="R588_260911";
@@ -549,11 +599,52 @@ setInterval(()=>{
       refresh(false);
     }
   }
+  /* battery protection: only a sustained sag counts, see CUTOFF above */
+  if(S.bplus){
+    const th=CUTOFF[cfg("LOW_POWER")];
+    if(!S.lowcut && S.volt<th){
+      S.lowT+=0.1;
+      if(S.lowT>=LOW_HOLD){
+        S.lowcut=true; S.lowT=0;
+        logEl("", `<span style="color:var(--accent)">${S.volt.toFixed(1)} V held below ${th.toFixed(1)} V — battery protection cuts the camera off</span>`);
+        if(rec.active){ closeSeg(); rec.active=false; }
+        refresh(false);
+      }
+    } else if(!S.lowcut){ S.lowT=0; }
+    /* release with 0.3 V of hysteresis. The threshold is the camera's own, the release
+       point is not stated anywhere in the image — treat it as an assumption. */
+    if(S.lowcut && S.volt>=th+0.3){
+      S.lowcut=false;
+      logEl("ok", `${S.volt.toFixed(1)} V — supply recovered, camera powers up again`);
+      refresh(true);
+    }
+  } else { S.lowT=0; S.lowcut=false; }
+  paintPsu();
   paintRec();
 },100);
 
+function setVolt(v){ S.volt=+v; if(S.volt>=CUTOFF[cfg("LOW_POWER")]+0.2) S.lowT=0; paintPsu(); }
+function amps(){
+  if(S.mode==="OFF") return 0;
+  const base = ota.active ? DRAW.OTA : S.waking ? DRAW.WAKE : DRAW[S.mode];
+  return base + (S.wifi?DRAW_WIFI:0);
+}
+function paintPsu(){
+  const th=CUTOFF[cfg("LOW_POWER")], mA=amps(), V=S.mode==="OFF"?S.volt:S.volt;
+  $("cutlab").textContent="cut-off "+th.toFixed(1)+" V";
+  $("mV").textContent=V.toFixed(2);
+  $("mA").textContent=Math.round(mA);
+  $("mW").textContent=(V*mA/1000).toFixed(2);
+  const warn = S.lowcut?2 : S.volt<th?2 : S.volt<th+0.4?1 : 0;
+  document.querySelectorAll(".meter").forEach(m=>m.dataset.warn=warn);
+  $("psufoot").innerHTML =
+    S.lowcut ? `<b>Battery protection tripped</b> — the camera cut itself off to leave the car startable. Raise the supply above ${th.toFixed(1)} V to bring it back.`
+    : S.volt<th ? `Below the ${th.toFixed(1)} V threshold — the camera shuts down once the reading stays here (30-sample average, two checks in a row).`
+    : S.volt<11.9 ? `Engine off, battery draining — protection trips at ${th.toFixed(1)} V.`
+    : S.volt<13.0 ? `Engine off, battery healthy.` : `Engine running — the alternator is charging.`;
+}
 function computeMode(){
-  if(!S.bplus) return "OFF";
+  if(!S.bplus || S.lowcut) return "OFF";
   if(S.acc) return "DRIVING";
   return cfg("PARK_TIMER")>0 ? "PARKING" : "SLEEP";
 }
