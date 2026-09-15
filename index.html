@@ -968,6 +968,9 @@ function refresh(sound){
     enqueue(transition(prev,next));
   }
   S.mode=next; setRecording(next);
+  /* the phone panel reads S.mode, and S.mode is only settled here — render it last,
+     otherwise the app keeps showing the previous state */
+  if(typeof appRender==="function") appRender();
   if(!playing&&!q.length) setVoiceIdle();
 }
 function toggle(k){
