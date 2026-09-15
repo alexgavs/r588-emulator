@@ -291,7 +291,7 @@ h1{font-family:var(--mono);font-weight:700;font-size:clamp(24px,3.4vw,32px);lett
   .lede{font-size:13.5px;line-height:1.5;margin:0 0 9px;max-width:112ch}
   .chips{margin:0}
   .layout{flex:1 1 auto;min-height:0;align-items:stretch;
-  grid-template-columns:minmax(0,430px) minmax(0,390px) minmax(0,1fr)}
+  grid-template-columns:minmax(0,408px) minmax(0,400px) minmax(0,1fr)}
   .left,.mid,.rcol{min-height:0;height:100%}
   .left{position:static;overflow:auto;overscroll-behavior:contain}
   .left>.card{flex:0 0 auto}
@@ -354,6 +354,20 @@ h1{font-family:var(--mono);font-weight:700;font-size:clamp(24px,3.4vw,32px);lett
   .psuhd{margin-bottom:6px}
   .psu input[type=range]{height:14px}
   .vscale{margin:-4px 0 5px}
+}
+
+/* compact controls: the two wiring switches sit side by side as tiles, so the whole
+   column clears the fold without touching the photo */
+@media(min-width:1080px) and (min-height:640px){
+  .ctrls{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding-bottom:0}
+  .ctrls .row{padding:8px 10px;border-radius:10px;gap:8px}
+  .ctrls .lab span span{display:none}
+  .ctrls .lab b{font-size:13px}
+  .scn{padding:6px 14px 8px}
+  .scn button{padding:5px 4px;font-size:11px}
+  .status{padding:6px 14px;gap:4px}
+  .voice{padding:6px 14px;min-height:52px}
+  .keyhint{padding:4px 0 0;font-size:9.5px;line-height:1.35}
 }
 </style>
 
