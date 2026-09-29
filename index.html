@@ -579,7 +579,7 @@ h1{font-family:var(--mono);font-weight:700;font-size:clamp(24px,3.4vw,32px);lett
     <br><br><b>3 · Recording &amp; files.</b> Loop segments of <code>Rec_Split_Time</code> go to <code>Normal/F</code>·<code>Normal/R</code>; protected clips to <code>Event/*</code>, parking clips to <code>Parking/*</code> (F=front, R=rear). Front 2560×1440@30, rear 1920×1080@25. On any power-down the current buffer is flushed to a file first (LVP cut, B+ removed, ACC off, parking window ending) so the last clip is never lost, even below the normal 3&nbsp;s minimum.
     <br><br><b>4 · G-sensor (two independent levels).</b> <code>GSR_SENSITIVITY</code> (“G-Sensor Sensitivity”) is the <b>driving</b> impact level, LOW/MIDDLE/HIGH with <b>no OFF</b> — the floor is LOW (default), which does not false-trigger; an impact while DRIVING writes an Event clip. <code>GSR_PARKING</code> (app label “Parking Monitor”) is the <b>parking</b> level, OFF/LOW/MIDDLE/HIGH, default OFF — it decides whether the parked camera stays up at all. On the move the confirmation is a single short beep <code>du.mp3</code>.
     <br><br><b>5 · Parking (ACC off).</b> Parking Monitor decides whether the camera stays up at all; Time-lapse decides, separately, whether it keeps recording. Monitor off &rarr; <code>powerOff.mp3</code> and the camera powers down whatever Time-lapse says, only the ignition wakes it. Monitor on + Lapse off &rarr; sleeps listening; an impact wakes it, records one <code>Rec_Split_Time</code>, sleeps again. Monitor on + Lapse on &rarr; time-lapse runs the window; an impact switches to normal 25/30&nbsp;fps for one <code>Rec_Split_Time</code>, then time-lapse resumes.
-    <br><br><b>6 · Low-voltage protection (LVP).</b> Guards the battery whenever the engine is off (<b>ACC off</b>, any parking/sleep state); with ACC on the alternator charges and LVP is not armed. Threshold <code>LOW_POWER_PROTECT</code> = 11.2 / 11.5 / 11.8&nbsp;V. The sampler averages 30 readings ~1.010&nbsp;s apart (<code>@0xe7ec0</code>) and needs <b>two consecutive averages</b> at/below the threshold before it cuts — about <b>61&nbsp;s</b>; one reading above resets the count. No hysteresis (<code>@0x120b4020</code>): raising the supply alone does not restore power — it comes back only on <b>ACC on</b> or a <b>B+ reconnect</b>, booting normally, and announces <code>powerOff.mp3</code> before it cuts. <span style="color:var(--ink-3)">Shipped: LVP is armed only on the parking-record path (<code>@0x3c6e7c</code>, gated by <code>lowFpsRecIng==1 @0x35214</code>) and never plays <code>powerOff.mp3</code> — both corrected here.</span>
+    <br><br><b>6 · Low-voltage protection (LVP)</b> (reports/53). Armed in one place only — when the <b>time-lapse starts</b> (<code>LVP_Enable(1) @0x35168</code>, not on 5&nbsp;V) — and stays armed until the camera reboots; outside the time-lapse the camera is down anyway, so nothing measures the battery there. Threshold <code>LOW_POWER_PROTECT</code> = <b>11.8 / 12.0 / 12.2&nbsp;V</b> (value-set 34, factory 11.8; ADC 1005/1025/1038). The thread <code>GAUGE_LEVEL_CHECK @0xe80ac</code> takes one sample every <b>1.010&nbsp;s</b>, closes a window every <b>30 samples</b>, and a window whose average is at or below the threshold counts one; a window above resets the series (<code>@0xe8234</code>). <b>Two low windows in a row</b> power the camera down: ≈61&nbsp;s from arming. No hysteresis: raising the supply resets nothing, and after the cut only <b>ACC on</b> or a <b>B+ reconnect</b> brings the camera back. On the cut: Wi-Fi off, recording stopped and the file finalised, G-sensor interrupt disabled (<code>SetSensitity(0) @0x34414</code> — an impact will not wake it), power-hold released (<code>0x120b4020 ← 0</code>). Planned announces <code>powerOff.mp3</code> first; the real builds are silent. <span style="color:var(--ink-3)">Real-build defect: the sample counter boots at −1 (<code>.data 0x363f88</code>) and arming does not reset it, so the first window holds <b>31 samples ÷ 30</b> — its average reads 3.3&nbsp;% high and can miss the cut-off, costing a third window (≈91&nbsp;s; measured on the bench with 11.45&nbsp;V against 11.8&nbsp;V: time-lapse 14:11:01 → last frame 14:12:26–30). Planned counts the first window correctly.</span>
     <br><br><b>7 · Wi-Fi AP.</b> SSID <code>GKDVR_&lt;3-byte MAC&gt;</code>, WPA2, independent of the ignition; idles out after <b>60&nbsp;s</b> with nobody touching the app, the button brings it back. <span style="color:var(--ink-3)">Shipped: 300&nbsp;s (<code>@0x330ac</code>) and only while no station is associated, so with a phone attached it never expires.</span>
     <br><br><b>8 · Button (single key, acted on release).</b> Under 3&nbsp;s (<code>0xbb8</code>) = manual emergency clip; 3–5&nbsp;s = Wi-Fi on/off; over 5&nbsp;s (<code>0x1388</code>) = factory reset (<code>@0xe787c</code>). No power-off branch.
     <br><br><b>9 · LED.</b> One blue LED: blinks once a second while recording, dark when idle. Red is the bootloader during a firmware update, never the app.
@@ -596,7 +596,7 @@ h1{font-family:var(--mono);font-weight:700;font-size:clamp(24px,3.4vw,32px);lett
       <tr><td>Start/stop from the app</td><td>spoken</td><td colspan="2">silent</td><td><code>startRec</code> / <code>stopRec</code> spoken</td></tr>
       <tr><td>G-Sensor Sensitivity menu</td><td>low / Medium / High — no OFF, LOW is the floor</td><td colspan="2">off / low / Medium / High</td><td>no OFF</td></tr>
       <tr><td>Wi-Fi</td><td>independent of ACC, 60 s idle</td><td colspan="3">follows ACC: off at the ≈2 s event, on at the ON edge and at boot; 300 s idle only with no phone attached</td></tr>
-      <tr><td>Low-voltage cut</td><td>armed whenever ACC is off; <code>powerOff</code> word</td><td colspan="3">armed in the time-lapse only; silent</td></tr>
+      <tr><td>Low-voltage cut</td><td>time-lapse only; 11.8/12.0/12.2 V; 30-sample windows × 1.01 s, two low in a row → ≈61 s; <code>powerOff</code> word; no hysteresis, back on ACC / B+</td><td colspan="3">same thresholds and windows, silent; first window after boot is 31÷30 (average +3.3 %) → ≈61 s if the supply is well below the cut-off, ≈91 s near it (bench: 11.45 V vs 11.8 V → 89 s); after the cut the G-sensor interrupt is off, an impact does not wake the camera</td></tr>
     </table>
   </div>
 </div>
@@ -631,31 +631,25 @@ let S={bplus:false,acc:false,mode:"OFF",waking:false,wifi:false,wifiT:0,
           bootWake (this boot was a G-sensor wake), appStop (recording stopped from the app) */
        booting:false,bootT:0,down:false,tl:false,tlSec:0,busy:false,pollT:0,bootWake:false,appStop:false};
 
-/* Cut-off thresholds are the three values the camera itself offers (paramdef value-set 34).
-   How the firmware decides, from GAUGEMNG_LowPowerCheck:
-     0xe7f04..0xe7f20  averages 30 consecutive samples  (cmp #0x1d / mov #0x1e / sdiv)
-     0xe7f40           compares that average with the configured threshold (cmp r4,r0 / bgt)
-     0xe7f54..0xe7f60  needs TWO consecutive breaches before it sends the B+ low-power message
-   So a dip does nothing: the supply has to stay down. The sample interval is not in the
-   image, so the 3 s used here is a stand-in, not a measured figure. */
-const CUTOFF=[11.2,11.5,11.8];
-/* The sampling thread sleeps tv_sec=1 / tv_nsec=10 000 000 between reads (0xe7ea4/0xe7ea8,
-   nanosleep at 0xe7ec0), so one average takes 30 x 1.010 s and two are needed:
-   61 seconds from the first low reading to the shutdown. Sped up here like the recorder. */
-const LOW_HOLD=60.6;
-/* Two more gates, both proven: the check is armed only from the parking-recording entry
-   (0x35168), and the low-power event is dropped unless lowFpsRecIng == 1 (0x35214) — that is,
-   unless the time-lapse recording is actually running. With the timer off the camera sleeps
-   through any voltage. */
-/* Ideal logic: low-voltage protection guards the battery whenever the engine is off (ACC off) and
-   B+ is present — in every parking/sleep state, not only during time-lapse recording. The shipped
-   firmware arms it only on the parking-record path (flag @0x3c6e7c, event gated by lowFpsRecIng==1
-   @0x35214), so a camera dropped straight to SLEEP never watched the supply. Timing stays hardware
-   (LOW_HOLD 60.6 s, CUTOFF thresholds) — only the arming condition is corrected. */
-function lbpArmed(){
-  if(P.fw) return S.mode==="PARKING";            /* real builds: armed on the parking-record entry only */
-  return S.bplus && !S.acc && !(S.mode==="SLEEP" && !cfg("GSR_PARKING"));   /* Planned: whenever the engine is off and the camera is still up */
-}
+/* Low-voltage protection (reports/53-lvp-929.md; the code is identical in .918 and, by paramdef,
+   the same value-set in .911). Cut-off thresholds = value-set 34: 11.8V=0 / 12.0V=1 / 12.2V=2
+   (ADC counts 1005 / 1025 / 1038 on this board), factory 11.8 V.
+   GAUGE_LEVEL_CHECK @0xe80ac: one LSADC sample every 1.010 s (0xe8198), non-overlapping windows
+   of 30 samples (cmp #0x1d @0xe81f8, sdiv /30 @0xe8214), window average <= threshold -> consec++,
+   else consec=0 (cmp r4,r0; bgt @0xe8234); two low windows in a row (cmp #1 @0xe8250) publish
+   0x10432005. No hysteresis anywhere. Armed in exactly one place — the time-lapse entry
+   (LVP_Enable(1) @0x35168 -> 0xe804c), after the timer is created and only if not 5 V — and never
+   disarmed until a reboot. Defect: the sample counter starts at -1 (.data 0x363f88) and Enable does
+   not reset it, so the FIRST window after boot holds 31 samples divided by 30 — its average reads
+   3.3 % high, which can cost a whole extra window (61 -> 91 s). */
+const CUTOFF=[11.8,12.0,12.2];
+const LVP_T=1.010, LVP_N=30;
+let lvp={cnt:-1,sum:0,consec:0,t:0,armT:0,first:true};   /* first: the counter is still at its boot value -1 */
+/* Planned keeps the same measurement (thresholds, 30-sample windows, two in a row, no hysteresis,
+   time-lapse only — outside it the camera is asleep anyway) but counts the first window correctly. */
+function lbpArmed(){ return S.mode==="PARKING"; }
+function lvpArm(){ lvp.consec=0; lvp.t=0; lvp.armT=0; if(!P.fw){ lvp.cnt=0; lvp.sum=0; lvp.first=false; } }
+function lvpReset(){ lvp={cnt:P.fw?-1:0,sum:0,consec:0,t:0,armT:0,first:!!P.fw}; }
 
 /* Power per state, measured on the bench at 14 V. The camera runs off a switching
    regulator, so power is the stable figure and current follows it: mA = W / V.
@@ -682,7 +676,7 @@ const CFG={
   LOW_FPS:{v:333,cgi:"LOW_FPS_REC",label:"Time Lapse Frame Rate",opts:[[1000,"1FPS"],[500,"2fps/s"],[333,"3fps/s"]],vs:30},
   MIRROR:{v:1,cgi:"MIRROR",label:"mirror display from left to right",opts:[[0,"off"],[1,"On"]],vs:24},
   FLIP:{v:0,cgi:"FLIP",label:"vertical reflection",opts:[[0,"off"],[1,"On"]],vs:20},
-  LOW_POWER:{v:0,cgi:"LOW_POWER_PROTECT",label:"Low voltage regulation",opts:[[0,"11.2V"],[1,"11.5V"],[2,"11.8V"]],vs:34},
+  LOW_POWER:{v:0,cgi:"LOW_POWER_PROTECT",label:"Low voltage regulation",opts:[[0,"11.8V"],[1,"12.0V"],[2,"12.2V"]],vs:34},
   VOLUME:{v:80,cgi:"VOLUME",label:"Volume",opts:[[0,"Mute"],[60,"low"],[80,"Medium"],[88,"High"]],vs:10}
 };
 const PARKTXT={0:"off",1:"15 min",2:"12 h",3:"24 h"};
@@ -880,32 +874,34 @@ setInterval(()=>{
       }
     }
   }
-  /* Battery protection runs in the parking path only. It is armed inside PDT_UI_ProcLapseRec
-     (name string at 0x35160): once the parking timer is created, 0x35168 calls the enable
-     with 1, which stores the flag at 0x3c6e7c and clears the breach counter. That flag is
-     the only thing the sampling thread at 0xe7dc8 tests before it reads the ADC (0xe7e4c),
-     and nothing else in the image ever calls the enable — so with ACC on, nothing is
-     measured and the camera cannot cut itself off. A camera fed from 5 V skips the arming
-     entirely (0x350f0 -> '5v power...'). */
-  if(lbpArmed()){
-    const th=CUTOFF[cfg("LOW_POWER")];
-    if(!S.lowcut && S.volt<=th){
-      S.lowT+=0.1*SIM;                 /* sped up like the recorder; the real wait is 61 s */
-      if(S.lowT>=LOW_HOLD){
-        S.lowcut=true; S.lowT=0;
-        logEl("", `<span style="color:var(--accent)">${S.volt.toFixed(1)} V held at or below ${th.toFixed(1)} V for a minute — battery protection powers the camera down</span>`);
-        /* powerOff.mp3 sits in the firmware but nothing ever calls it: the camera dies without
-           a word. Corrected, the driver is told before the camera goes. */
-        if(P.powerOffVoice) enqueue([{clip:"powerOff"}]);
-        else logEl("", `<span style="color:var(--ink-3)">no announcement — powerOff.mp3 is in the image but the firmware never plays it</span>`);
-        if(rec.active){ closeSeg(true); rec.active=false; }
-        logEl("", `<span style="color:var(--ink-3)">clip closed, power latch released — the camera stays down until B+ is cycled or the ignition comes back</span>`);
-        refresh(false);
+  /* Battery protection: the sampling thread as in reports/53 §1.3 / §11.1, armed from the
+     time-lapse entry only (needCheck 0x3c6e90 <- LVP_Enable(1) @0x35168). Camera seconds, sped up
+     like the recorder — the real wait is 60.6 s (two clean windows) or 90.9 s (first window spoiled). */
+  if(lbpArmed() && !S.lowcut && !S.busy){
+    lvp.t+=0.1*SIM; lvp.armT+=0.1*SIM;
+    while(lvp.t>=LVP_T){
+      lvp.t-=LVP_T;
+      lvp.sum+=S.volt; lvp.cnt++;
+      if(lvp.cnt>=LVP_N){                       /* cnt > 29: close the window (31 samples the first time in the real builds) */
+        const n=lvp.cnt+(lvp.first?1:0), avg=lvp.sum/LVP_N, th=CUTOFF[cfg("LOW_POWER")];
+        lvp.cnt=0; lvp.sum=0; lvp.first=false;
+        if(avg<=th) lvp.consec++; else lvp.consec=0;
+        logEl("", `<span style="color:var(--ink-3)">LVP window closed: ${n} samples / 30 → average ${avg.toFixed(2)} V ${avg<=th?"≤":">"} ${th.toFixed(1)} V → ${avg<=th?`low window ${lvp.consec} of 2`:"series reset"}${n>LVP_N?" · first window after boot, 31/30 (defect)":""}</span>`);
+        if(lvp.consec>=2){
+          S.lowcut=true; lvp.consec=0;
+          logEl("", `<span style="color:var(--accent)">two low windows in a row — 0x10432005 → PDT_UI_PowerOff, ≈${Math.round(lvp.armT)} s after the time-lapse started (${Math.round(lvp.armT/LVP_T)} samples)</span>`);
+          /* powerOff.mp3 sits in every image but nothing calls it: the real builds die without a word */
+          if(P.powerOffVoice) enqueue([{clip:"powerOff"}]);
+          else logEl("", `<span style="color:var(--ink-3)">no announcement — powerOff.mp3 is in the image but the firmware never plays it</span>`);
+          if(S.wifi){ S.wifi=false; wifiReason=" — PowerOff"; }
+          if(rec.active){ closeSeg(true); rec.active=false; }
+          logEl("", `<span style="color:var(--ink-3)">Wi-Fi off, recording stopped and the file finalised, G-sensor interrupt disabled (SetSensitity(0) @0x34414 — an impact will not wake it), power-hold released (0x120b4020 ← 0). No hysteresis: only ACC on or a B+ reconnect brings the camera back.</span>`);
+          refresh(false);
+          break;
+        }
       }
-    } else { S.lowT=0; }
-  } else S.lowT=0;
-  /* No hysteresis exists: PDT_UI_PowerOff drops the power latch (writes 0 to 0x120b4020),
-     so raising the supply again changes nothing — only re-applying power brings it back. */
+    }
+  }
   /* recovery from an LVP cut is handled in refresh() (ACC on / B+ reconnect), so it boots with the
      startup notification instead of clearing here silently */
   paintPsu();
@@ -1055,7 +1051,7 @@ function startBoot(why){
 }
 function bootInit(){
   S.booting=true; S.bootT=0; S.down=false; S.tl=false; S.busy=false; S.appStop=false; S.waking=false;
-  S.pollT=0; ACCM={off:0,on:0,prev:2}; fwGen++;
+  S.pollT=0; ACCM={off:0,on:0,prev:2}; fwGen++; lvpReset();   /* a fresh process: sample counter back to -1 */
   if(rec.active){ closeSeg(true); rec.active=false; }
 }
 function bootEnd(){
@@ -1070,7 +1066,7 @@ function bootEnd(){
   refresh(true);                                /* BOOT → DRIVING; the boot voices come from transition() */
 }
 function toggleNotes(){ document.body.classList.toggle("shownotes"); }
-function setVolt(v){ S.volt=+v; if(S.volt>=CUTOFF[cfg("LOW_POWER")]+0.2) S.lowT=0; paintPsu(); }
+function setVolt(v){ S.volt=+v; paintPsu(); }   /* no hysteresis: the windows decide, nothing is reset by a higher reading */
 function watts(){
   if(S.mode==="OFF") return 0;
   const base = ota.active ? WATT.OTA : S.waking ? WATT.WAKE : WATT[S.mode];
@@ -1082,17 +1078,13 @@ function paintPsu(){
   $("mV").textContent=V.toFixed(2);
   $("mA").textContent = mA>=10 ? Math.round(mA) : mA>0 ? mA.toFixed(2) : "0";
   $("mW").textContent = W>=1 ? W.toFixed(2) : W>0 ? W.toFixed(4) : "0.00";
-  const warn = S.lowcut?2 : S.volt<th?2 : S.volt<th+0.4?1 : 0;
+  const warn = S.lowcut?2 : S.volt<=th?2 : S.volt<th+0.4?1 : 0;
   document.querySelectorAll(".meter").forEach(m=>m.dataset.warn=warn);
-  const left = (lbpArmed() && S.volt<=th && !S.lowcut) ? Math.ceil(LOW_HOLD-S.lowT) : 0;
+  const armed=lbpArmed()&&!S.lowcut, k=Math.max(0,lvp.cnt+(lvp.first?1:0)), avg=k?lvp.sum/k:0, firstWin=P.fw&&lvp.first;   /* the 31-sample first window */
   $("psufoot").innerHTML =
-    left ? `<b>Powering down in ${left} s</b> — the reading has to stay at or below ${th.toFixed(1)} V the whole time; raise it and the count starts over.`
-    : S.lowcut ? `<b>Battery protection tripped</b> — the camera cut itself off to leave the car startable. It comes back on <b>ACC on</b> (engine start) or a <b>B+ reconnect</b>; raising the supply alone won't (no hysteresis).`
-    : (P.fw && S.mode!=="PARKING") ? `<em>Battery protection is not armed</em> — this build arms it only on entering the time-lapse (<code>@0x35168</code>).`
-    : (S.acc&&S.bplus) ? `<em>Battery protection is not armed with ACC on</em> — the alternator is charging; the camera watches the supply the moment ACC drops (any parking or sleep state).`
-    : S.volt<th ? `Below the ${th.toFixed(1)} V threshold — the camera shuts down once the reading stays here (30-sample average, two checks in a row).`
-    : S.volt<11.9 ? `Engine off, battery draining — protection trips at ${th.toFixed(1)} V.`
-    : S.volt<13.0 ? `Engine off, battery healthy.` : `Engine running — the alternator is charging.`;
+    S.lowcut ? `<b>Battery protection tripped</b> — the camera cut itself off to leave the car startable. It comes back on <b>ACC on</b> (engine start) or a <b>B+ reconnect</b>; raising the supply alone does nothing (no hysteresis).`
+    : armed ? `<b>Battery protection armed</b> (time-lapse) — window <b>${Math.min(2,lvp.consec+1)} of 2</b>, sample ${k}/${LVP_N}${firstWin?" (first window: 31 samples ÷ 30, average reads 3.3 % high)":""}, running average <b>${k?avg.toFixed(2):"—"} V</b> vs cut-off ${th.toFixed(1)} V · one sample every 1.01 s; two windows at or below the cut-off in a row power the camera down, a window above resets the series.`
+    : `<em>Battery protection is not armed</em> — it arms only when the time-lapse starts (LVP_Enable @0x35168) and stays armed until the camera reboots; ${S.volt<=th?`the supply is already at or below the ${th.toFixed(1)} V cut-off`:S.volt<12.4?`engine off, battery draining — cut-off ${th.toFixed(1)} V`:S.volt<13.0?"engine off, battery healthy":"engine running — the alternator is charging"}.`;
 }
 function computeMode(){
   if(!S.bplus || S.lowcut) return "OFF";
@@ -1212,7 +1204,8 @@ function refresh(sound){
   if(prev==="OFF" && next!=="OFF"){ S.wifi=true; S.wifiT=0; }   /* wifi_start runs at boot, before any ACC */
   if(next==="BOOT") S.wifi=false;
   if(next==="DRIVING" && prev!=="DRIVING"){ S.wifi=true; S.wifiT=0; S.parkT=0; S.parkDone=false; }
-  if(next==="OFF"){ S.parkT=0; S.parkDone=false; S.down=false; S.tl=false; S.booting=false; S.busy=false; S.bootWake=false; fwGen++; }
+  if(next==="PARKING" && prev!=="PARKING") lvpArm();       /* LVP_Enable(1) @0x35168 — the only arming point */
+  if(next==="OFF"){ S.parkT=0; S.parkDone=false; S.down=false; S.tl=false; S.booting=false; S.busy=false; S.bootWake=false; fwGen++; lvpReset(); }
   /* In the real builds the ignition drives the access point: ACC OFF sends ProcWifiSwitchEvent(3,0)
      -> wifi_stop and ACC ON sends (3,1); source 3 plays no sound. That switching lives in
      accEvent(). The branch that would merely notify the app instead of stopping the radio is dead:
@@ -1589,7 +1582,7 @@ setVoiceIdle(); paintRec(); paintClips(); refresh(false);
 /* Auto-update: GitHub Pages / the browser can serve a cached build, so the page polls its own
    source and reloads the moment a newer version is deployed — no Ctrl+F5. SIM_BUILD is stamped
    automatically on every deploy; the reload uses a ?v= query to bypass the cache for certain. */
-const SIM_BUILD="1790680210";
+const SIM_BUILD="1790681485";
 (function(){
   let busy=false;
   async function check(){
