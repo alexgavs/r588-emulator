@@ -412,18 +412,13 @@ h1{font-family:var(--mono);font-weight:700;font-size:clamp(24px,3.4vw,32px);lett
 
 <div class="wrap">
   <header>
-    <div class="eyebrow">Samsonix · R588<span class="fwsw" role="group" aria-label="Firmware version" title="Which firmware the page runs: our target logic, or one of the vendor builds as it really behaves">
-        <button type="button" data-v="planned" aria-pressed="true" onclick="setFw('planned')">Planned</button>
-        <button type="button" data-v="911" aria-pressed="false" onclick="setFw('911')">FW .911</button>
-        <button type="button" data-v="918" aria-pressed="false" onclick="setFw('918')">FW .918</button>
-        <button type="button" data-v="929" aria-pressed="false" onclick="setFw('929')">FW .929</button>
-      </span><button type="button" class="notesbtn" id="notesbtn" onclick="toggleNotes()">Notes</button></div>
+    <div class="eyebrow">Samsonix · R588<span class="fwsw" id="fwsw" role="group" aria-label="Firmware version" title="The firmware this page runs, as it really behaves on the camera"></span><button type="button" class="notesbtn" id="notesbtn" onclick="toggleNotes()">Notes</button></div>
     <h1>R588 Parking Logic</h1>
-    <p class="lede">What the camera does when the engine stops. <b>Parking Monitor</b> decides whether an impact is answered; <b>Time lapse</b> decides, separately, whether the parked camera keeps recording.</p>
+    <p class="lede">What the camera does when the engine stops, firmware <b>1.0.1.9.20260930</b>. <b>Time lapse</b> decides whether the parked camera keeps recording or powers down; <b>Parking Monitor</b> decides whether an impact wakes it once it is down.</p>
     <div class="modes">
-      <div class="mcard"><b>Monitor off</b><span>ACC off &rarr; says "power off" and powers down, whatever Time lapse is set to. Only the ignition brings it back.</span></div>
-      <div class="mcard"><b>Monitor on · Lapse off</b><span>Sleeps, listening. An impact wakes it, it records normal video for one Loop Recording Time, then sleeps again.</span></div>
-      <div class="mcard"><b>Monitor on · Lapse on</b><span>Time-lapse runs for the chosen window. An impact switches to normal speed for one Loop Recording Time, then the time-lapse resumes.</span></div>
+      <div class="mcard"><b>Lapse off</b><span>ACC off &rarr; "parking mode" at ≈2 s, then a silent power-down at ≈15 s. Monitor on: an impact boots the camera for one 30 s Event clip; Monitor off: it stays down until the ignition.</span></div>
+      <div class="mcard"><b>Lapse on</b><span>"parking mode" at ≈2 s, time-lapse at ≈15 s for the chosen window ("parking recording on"). An impact writes a 30 s Event clip at full speed, then the time-lapse resumes (at 4 fps).</span></div>
+      <div class="mcard"><b>Ignition back on</b><span>Within 15 s: nothing changes. From the time-lapse: "driving mode" once, then a ≈10 s reboot without recording, chime + "recording started" (no second "driving mode").</span></div>
     </div>
     <div class="chips" id="chips">
       <span class="chip" data-s="OFF"><i></i>OFF · no B+</span>
@@ -573,7 +568,7 @@ h1{font-family:var(--mono);font-weight:700;font-size:clamp(24px,3.4vw,32px);lett
     <br><br><b>Taken from observation, not yet from the code:</b> the Wi-Fi idle shutdown after a few minutes of driving.
   </div>
   <div class="notes" style="border-left-color:var(--drive);margin-top:16px">
-    <b>Device behaviour — developer reference.</b> The target (ideal) logic the camera should follow, the way this simulator runs it. Timings come from the firmware (address in brackets); where the shipped firmware differs, the deviation is noted so it gets fixed on the device, not copied.
+    <b>Device behaviour — developer reference.</b> §1–10 describe the target logic we asked the vendor for (the hidden "Planned" profile). <b>The page now runs firmware .930 as it really behaves — see §11.</b> Timings come from the firmware (address in brackets).
     <br><br><b>1 · Inputs &amp; power states.</b> Two wires decide everything: <code>B+</code> (constant 12&nbsp;V) and <code>ACC</code> (ignition); the state is derived. No <code>B+</code> or a tripped low-voltage latch &rarr; <b>OFF</b>. <code>ACC</code> on &rarr; <b>DRIVING</b>. <code>ACC</code> off with the parking timer still running &rarr; <b>PARKING</b> (time-lapse). <code>ACC</code> off otherwise &rarr; <b>SLEEP</b> (deep sleep, G-sensor armed).
     <br><br><b>2 · Boot &amp; announcements.</b> Any entry from OFF and every ACC edge runs the power-on path: chime <code>start.mp3</code> (readiness only), then the mode word — <code>accOn.mp3</code> <span class="he">מצב נסיעה</span> on ACC on, <code>accOff.mp3</code> <span class="he">מצב חניה</span> on ACC off — then <code>startRec</code>. Recovery from a low-voltage cut is a full boot with the same notification, not a silent resume.
     <br><br><b>3 · Recording &amp; files.</b> Loop segments of <code>Rec_Split_Time</code> go to <code>Normal/F</code>·<code>Normal/R</code>; protected clips to <code>Event/*</code>, parking clips to <code>Parking/*</code> (F=front, R=rear). Front 2560×1440@30, rear 1920×1080@25. On any power-down the current buffer is flushed to a file first (LVP cut, B+ removed, ACC off, parking window ending) so the last clip is never lost, even below the normal 3&nbsp;s minimum.
@@ -584,19 +579,20 @@ h1{font-family:var(--mono);font-weight:700;font-size:clamp(24px,3.4vw,32px);lett
     <br><br><b>8 · Button (single key, acted on release).</b> Under 3&nbsp;s (<code>0xbb8</code>) = manual emergency clip; 3–5&nbsp;s = Wi-Fi on/off; over 5&nbsp;s (<code>0x1388</code>) = factory reset (<code>@0xe787c</code>). No power-off branch.
     <br><br><b>9 · LED.</b> One blue LED: blinks once a second while recording, dark when idle. Red is the bootloader during a firmware update, never the app.
     <br><br><b>10 · App / backend interface.</b> HTTP CGI on port 80 (<code>/cgi-bin/hisnet/*.cgi</code>, <code>-type=</code>/<code>-value=</code>), live stream <code>rtsp://&lt;ip&gt;/livestream/1</code> on 554, no auth beyond WPA2 (client identified by IP). Events surface as <code>{"eventid":…,"arg1":…}</code>. No cloud path to the camera — all control is local.
-    <br><br><b>11 · Firmware versions (selector in the header).</b> <b>Planned</b> is the logic above. The three vendor builds run the real engine instead: ACC is sampled <b>once a second</b> (<code>ACCMNG_Check</code>, thresholds Off=15 / On=23 / OffWf=2), and power-up is always a <b>≈9 s boot</b> with no recording (measured on the card, .929: last time-lapse frame 11:51:23 → first Normal frame 11:51:32; the first file then carries <code>accOn</code> at ≈3 s and a second prompt at ≈5.8 s). Sources: reports/48, 49, 49a–c, 50a, 50b, 51 §6.2, 52 §7–8.
+    <br><br><b>11 · Firmware 1.0.1.9.20260930 — what the page runs</b> (reports/54 §8/§10, 55; everything not listed is as .929, reports/51–53). Earlier builds (Planned, .911, .918, .929) stay in the code as hidden profiles.
     <table>
-      <tr><th></th><th>Planned</th><th>.911</th><th>.918</th><th>.929</th></tr>
-      <tr><td>ACC OFF</td><td>at once, one word by the settings: timer on → <span class="he">צילום בחניה הופעל</span>; sensor only → <span class="he">מצב חניה</span>; Monitor off → <code>powerOff</code> and the camera powers down</td><td colspan="3">≈2 s: <span class="he">מצב חניה</span> (.911: <code>accOff.mp3</code> that carries the <i>driving</i> words) + Wi-Fi off; recording goes on in <code>Normal/</code>. ≈15 s, by <code>LOW_FPS_REC</code> only: timer on → stop, 1 s, time-lapse + <code>startLapseRec</code> (≈16 s); timer off → silent PowerOff, power-hold released ≈17 s, G-sensor armed only if Monitor is on. If an Event clip is being written at the 15th sample the fork waits 15 s and the ≈2 s word repeats.</td></tr>
-      <tr><td>ACC ON</td><td><span class="he">מצב נסיעה</span> + <code>startRec</code> at once; from any parking state</td><td>silent (no <code>accOn.mp3</code>). From the time-lapse: silent, record stop after ≈5–6 s, reboot</td><td>silent within 15 s of ACC off (the camera never left driving). From the time-lapse: <span class="he">מצב נסיעה</span> at ≈5–6 s, 2 s pause, stop, <b>reboot ≈9 s</b>, then chime + <span class="he">מצב נסיעה</span> + <code>startRec</code></td><td><span class="he">מצב נסיעה</span> on the ON edge — also after a dip shorter than 2 s that announced nothing. From the time-lapse exactly as .918 (edge word muted there)</td></tr>
-      <tr><td>Camera down, ACC ON</td><td>at once</td><td colspan="3">boot ≈9 s, then chime (+ <span class="he">מצב נסיעה</span> from .918) + <code>startRec</code></td></tr>
-      <tr><td>Impact, driving</td><td><code>du</code>, one loop-length clip in <code>Event/</code></td><td><code>du</code> + <code>startEmrRec</code>; the running segment moves to <code>Event/</code> and is extended by 30 s</td><td>as .911; dropped while any prompt plays (D2). On the bench not detected at all (50a: sensitivity read back as OFF)</td><td><code>du</code> only, clip as .918</td></tr>
-      <tr><td>Impact, time-lapse</td><td>full-speed clip for one loop, then the time-lapse resumes</td><td>ignored</td><td colspan="2"><code>du</code> only, no clip, Monitor not read</td></tr>
-      <tr><td>Impact, camera down</td><td>wakes, one loop-length clip, sleeps</td><td>boot ≈9 s, chime + <code>startRec</code> + <code>du</code> + <code>startEmrRec</code>, 30 s <code>Event/</code> clip</td><td colspan="2">boot ≈9 s (src=0), chime + <span class="he">מצב חניה</span>, the same EMR publish as on the move → <code>Event/</code> clip (30 s by param; 30–48 s on the card, then a short <code>Normal/</code> file and the power-off; <code>Parking/</code> holds only time-lapse <code>*_t.TS</code>). Observed on the card (.929): a second impact during this clip cost the front channel ≈3 s of video, the rear 0.8 s; on the move the front loses 0.4 s at the Event switch — noted in the log, not modelled</td></tr>
-      <tr><td>Start/stop from the app</td><td>spoken</td><td colspan="2">silent</td><td><code>startRec</code> / <code>stopRec</code> spoken</td></tr>
-      <tr><td>G-Sensor Sensitivity menu</td><td>low / Medium / High — no OFF, LOW is the floor</td><td colspan="2">off / low / Medium / High</td><td>no OFF</td></tr>
-      <tr><td>Wi-Fi</td><td>independent of ACC, 60 s idle</td><td colspan="3">follows ACC: off at the ≈2 s event, on at the ON edge and at boot; 300 s idle only with no phone attached</td></tr>
-      <tr><td>Low-voltage cut</td><td>time-lapse only; 11.8/12.0/12.2 V; 30-sample windows × 1.01 s, two low in a row → ≈61 s; <code>powerOff</code> word; no hysteresis, back on ACC / B+</td><td colspan="3">same thresholds and windows, silent; first window after boot is 31÷30 (average +3.3 %) → ≈61 s if the supply is well below the cut-off, ≈91 s near it (bench: 11.45 V vs 11.8 V → 89 s); after the cut the G-sensor interrupt is off, an impact does not wake the camera</td></tr>
+      <tr><th>Topic</th><th>.930 on the camera</th></tr>
+      <tr><td>Factory settings</td><td>G-Sensor Sensitivity <b>MIDDLE</b>, Parking Monitor <b>MIDDLE</b>, time-lapse <b>OFF</b>, LOW_POWER_PROTECT <b>11.8 V</b> (param, 4 bytes changed); the G-sensor menu has no OFF.</td></tr>
+      <tr><td>ACC OFF</td><td>ACC sampled once a second (Off=15 / On=23 / OffWf=2). ≈2 s by the code (<code>0x10437003</code>): <span class="he">מצב חניה</span> + Wi-Fi off — the operator hears it at ≈5 s (queue and player latency, not modelled); recording goes on in <code>Normal/</code>. ≈15 s (<code>0x10437000</code>), by time-lapse only: on → stop, 1 s, time-lapse + <span class="he">צילום בחניה הופעל</span>; off → silent PowerOff, power-hold released ≈17 s, G-sensor armed if Parking Monitor is on.</td></tr>
+      <tr><td>ACC ON</td><td>Within 15 s of ACC off: <span class="he">מצב נסיעה</span> on the edge, nothing else changes. From the time-lapse: <span class="he">מצב נסיעה</span> <b>once</b> at ≈5–6 s (<code>0x10437001</code>), 2 s, record stop, <b>reboot ≈10 s without recording</b> (card: last time-lapse frame 14:54:05 → first Normal frame 14:54:15), then chime + <span class="he">ההקלטה החלה</span> — <b>no second «driving»</b>: the reboot helper writes 1 to PMC <code>0x120f0058</code> (@0x345fc) and the start thread skips <code>accOn</code> when it reads 1 (@0x332e8).</td></tr>
+      <tr><td>Sticky flag 0x120f0058</td><td>Nothing in the firmware clears it (only writes of 1: reboot-from-time-lapse, FactoryReset, G-wake clip end with ACC on). On the camera it survived a power-off: after any exit from the time-lapse every later start with ACC on is chime + <span class="he">ההקלטה החלה</span> without <span class="he">מצב נסיעה</span> (15:08). The owner accepts this. Modelled as cleared only by removing B+ (NOT PROVEN for the register).</td></tr>
+      <tr><td>Impact, driving</td><td><code>du</code> only; the running segment moves to <code>Event/</code> and is extended by 30 s (front loses 0.4 s at the switch — card, .929); dropped while a prompt plays (D2).</td></tr>
+      <tr><td>Impact, time-lapse</td><td><b>New in .930:</b> <code>du</code> → <code>0x83000201</code> → 30 s <code>Event/F,R</code> clip at 30 fps, then back to the time-lapse <b>at 4 fps</b> instead of 3 (@0x23ba4); the parking timer keeps running. Card: 14:50:00→14:50:30 at 30 fps, time-lapse from 14:50:30 without a gap; one clip started ≈2 s after the impact (those seconds stayed in the time-lapse). A second impact during the clip: <code>du</code> only, no new event, no extension. LVP is not handled while the clip runs (@0x35354).</td></tr>
+      <tr><td>Impact, camera down</td><td>Parking Monitor on: G-sensor INT boots the camera (≈10 s), chime + <span class="he">מצב חניה</span>, one 30 s <code>Event/</code> clip (30–48 s on the card), then PowerOff or, if ACC is back, a reboot (which also sets the flag above). Monitor off, or after an LVP cut: the interrupt is off (<code>SetSensitity(0)</code>) — an impact does not wake it (confirmed 14:41).</td></tr>
+      <tr><td>Low-voltage cut</td><td>As reports/53: armed at the time-lapse entry only, 11.8/12.0/12.2 V, one sample per 1.01 s, 30-sample windows, two low windows in a row, no hysteresis, silent; first window after boot is 31÷30 (average +3.3 %) → 89 s at 11.45 V (card 14:39:18→14:40:47) or 59 s well below the cut-off (14:43:01→14:44:00). Wi-Fi off, file finalised, G-sensor interrupt off, power-hold released; back only on ACC on / B+.</td></tr>
+      <tr><td>App start/stop, Wi-Fi</td><td><code>workmodecmd.cgi</code> start/stop are spoken (<span class="he">ההקלטה החלה / הופסקה</span>). Wi-Fi follows ACC (off at the ≈2 s event, on at the ON edge and at boot); 300 s idle only with no phone attached.</td></tr>
+      <tr><td>Format</td><td>No voice: the <code>startformatCard.mp3</code> call was removed (@0x34ad8), the file stays in the image; <code>getsdinfo</code> reports status=1 while formatting; recording resumes ≈10 s later (card).</td></tr>
+      <tr><td>U-Boot check_acc</td><td>U-Boot .930 reads the ACC pin at boot and, if ACC is on, writes <code>0x88</code> to <code>0x120f0048</code>; <code>multi_cam</code> then treats ACC as connected ("uboot Check acc on") — a start with ACC on can no longer be misread as two-wire wiring with ACC events disabled. Not modelled (the page always assumes three wires). U-Boot is otherwise unchanged; it is still written first and without verify on an update (reports/55).</td></tr>
     </table>
   </div>
 </div>
@@ -629,7 +625,12 @@ let S={bplus:false,acc:false,mode:"OFF",waking:false,wifi:false,wifiT:0,
        /* real-build state: booting (BOOT gap), down (power-hold released), tl (lowFpsRecIng),
           busy (a firmware sequence is between its steps), pollT (ACC sampler phase),
           bootWake (this boot was a G-sensor wake), appStop (recording stopped from the app) */
-       booting:false,bootT:0,down:false,tl:false,tlSec:0,busy:false,pollT:0,bootWake:false,appStop:false};
+       booting:false,bootT:0,down:false,tl:false,tlSec:0,busy:false,pollT:0,bootWake:false,appStop:false,
+       /* .930: pmc58 = PMC register 0x120f0058 written 1 before a reboot out of the time-lapse (and by
+          FactoryReset); it mutes the boot-time accOn and nothing in the firmware clears it. Modelled
+          as surviving everything but a B+ removal (NOT PROVEN for the register; the mute after a
+          PowerOff was seen on the camera). tlFps4 = time-lapse restarted at 4 fps after an event. */
+       pmc58:false,tlFps4:false};
 
 /* Low-voltage protection (reports/53-lvp-929.md; the code is identical in .918 and, by paramdef,
    the same value-set in .911). Cut-off thresholds = value-set 34: 11.8V=0 / 12.0V=1 / 12.2V=2
@@ -669,9 +670,10 @@ const CFG={
   MEDIAMODE:{v:6,cgi:"MEDIAMODE",label:"Video resolution",opts:[[6,"2K+1080P"]],vs:6},
   SPLIT:{v:60,cgi:"Rec_Split_Time",label:"Loop Recording Time",opts:[[60,"1 Minute"],[180,"3 Minutes"],[300,"5 Minutes"]],vs:28},
   AUDIO:{v:1,cgi:"AUDIO",label:"Record audio",toggle:true,vs:11},
-  GSR_DRIVE:{v:1,cgi:"GSR_SENSITIVITY",label:"G-Sensor Sensitivity",opts:[[0,"off"],[1,"low"],[2,"Medium"],[3,"High"]],vs:16,
+  /* factory values are the .930 param: G-sensor MIDDLE, Parking Monitor MIDDLE, time-lapse OFF, LVP 11.8 V (reports/54 §2) */
+  GSR_DRIVE:{v:2,cgi:"GSR_SENSITIVITY",label:"G-Sensor Sensitivity",opts:[[0,"off"],[1,"low"],[2,"Medium"],[3,"High"]],vs:16,
     hint:"When a collision occurs, automatically lock the video of the impact to prevent it from being overwritten, which serves as evidence for the incident"},
-  GSR_PARKING:{v:0,cgi:"GSR_PARKING",label:"Parking Monitor",opts:[[0,"off"],[1,"low"],[2,"Medium"],[3,"High"]],vs:17},
+  GSR_PARKING:{v:2,cgi:"GSR_PARKING",label:"Parking Monitor",opts:[[0,"off"],[1,"low"],[2,"Medium"],[3,"High"]],vs:17},
   PARK_TIMER:{v:0,cgi:"LOW_FPS_REC",label:"Time lapse recording duration",opts:[[0,"off"],[1,"15 Minutes"],[2,"12 Hours"],[3,"24 Hours"]],vs:33},
   LOW_FPS:{v:333,cgi:"LOW_FPS_REC",label:"Time Lapse Frame Rate",opts:[[1000,"1FPS"],[500,"2fps/s"],[333,"3fps/s"]],vs:30},
   MIRROR:{v:1,cgi:"MIRROR",label:"mirror display from left to right",opts:[[0,"off"],[1,"On"]],vs:24},
@@ -687,7 +689,7 @@ const RATE={4:{f:10240,r:10240,fl:"1920×1080 · 30 fps",rl:"1920×1080 · 25 fp
             6:{f:16240,r:10240,fl:"2560×1440 · 30 fps",rl:"1920×1080 · 25 fps"},
             8:{f:24000,r:10240,fl:"3840×2160 · 25 fps",rl:"1920×1080 · 25 fps"}};
 const cfg=k=>CFG[k].v;
-const tlfps=()=>Math.round(1000/cfg("LOW_FPS"));
+const tlfps=()=>S.tlFps4 ? 4 : Math.round(1000/cfg("LOW_FPS"));   /* .930: after an impact event the time-lapse restarts at 4 fps (mov r3,#4 @0x23ba4) */
 function mbps(){ const r=RATE[cfg("MEDIAMODE")]; return (r.f+r.r)/8/1024; }
 
 const CAP=32*1024, SIM=12;
@@ -825,10 +827,10 @@ setInterval(()=>{
       const folder=evt.folder||"Event";
       addClip(folder,folder==="Parking"?"parking":"event",evt.name,evt.seg,evt.seg*evt.rate,true);
       const fs=evt.fromSleep, fl=evt.fromLapse; evt.active=false;
-      if(fl) logEl("ok","Event clip closed — back to time-lapse for the rest of the window");
+      if(fl){ logEl("ok",`Event clip closed — back to time-lapse for the rest of the window${P.tlEvent?" — restarted at <b>4 fps</b> instead of 3 (mov r3,#4 @0x23ba4); the parking timer kept running":""}`); if(P.tlEvent) S.tlFps4=true; }
       else if(fs){
         S.waking=false;
-        if(P.fw && S.acc){ logEl("ok","Wake clip closed — ACC is live → sync + reboot (@0x34440)"); startBoot("reboot after the G-wake clip"); }
+        if(P.fw && S.acc){ logEl("ok","Wake clip closed — ACC is live → sync + reboot (@0x34440)"); if(P.stickyAccOn) S.pmc58=true; startBoot("reboot after the G-wake clip"); }
         else if(P.fw) logEl("ok","Wake clip closed — PowerOff (@0x346bc), G-sensor re-armed");
         else logEl("ok","Event clip closed — camera powers down again, G-sensor re-armed");
       }
@@ -887,6 +889,12 @@ setInterval(()=>{
         lvp.cnt=0; lvp.sum=0; lvp.first=false;
         if(avg<=th) lvp.consec++; else lvp.consec=0;
         logEl("", `<span style="color:var(--ink-3)">LVP window closed: ${n} samples / 30 → average ${avg.toFixed(2)} V ${avg<=th?"≤":">"} ${th.toFixed(1)} V → ${avg<=th?`low window ${lvp.consec} of 2`:"series reset"}${n>LVP_N?" · first window after boot, 31/30 (defect)":""}</span>`);
+        if(lvp.consec>=2 && P.fw && evt.active){
+          /* the UI handler needs state1==0 (@0x35354): while an event clip is being written the
+             publish is dropped and the thread starts a new series */
+          lvp.consec=0;
+          logEl("", `<span style="color:var(--ink-3)">0x10432005 published but ignored — an event clip is being written (state1≠0 @0x35354); the windows start over</span>`);
+        }
         if(lvp.consec>=2){
           S.lowcut=true; lvp.consec=0;
           logEl("", `<span style="color:var(--accent)">two low windows in a row — 0x10432005 → PDT_UI_PowerOff, ≈${Math.round(lvp.armT)} s after the time-lapse started (${Math.round(lvp.armT/LVP_T)} samples)</span>`);
@@ -930,34 +938,55 @@ function forgetCfg(){ try{ localStorage.removeItem(LS); }catch(e){} }
    differ only in what each event says and what an impact does (reports/48, 49, 50a/b, 51, 52). ---- */
 const CHIME={clip:"start"};
 const FW={
-  planned:{label:"Planned",ver:"R588_planned",fw:false,wifiIdle:true,powerOffVoice:true,appRecVoice:true,noGsrOff:true,   /* no OFF: the floor is LOW */
+  planned:{label:"Planned",ver:"R588_planned",fw:false,wifiIdle:true,powerOffVoice:true,appRecVoice:true,noGsrOff:true,hidden:true,   /* no OFF: the floor is LOW */
     blurb:`our target logic — every transition at once, one word chosen by the settings: time-lapse on → «צילום בחניה הופעל», sensor only → «מצב חניה», Parking Monitor off → power-off word and the camera powers down; ACC on → «מצב נסיעה»; an impact on the move is a beep only; G-Sensor Sensitivity has no OFF (LOW is the floor)`},
-  "911":{label:"FW .911",ver:"R588_260911",fw:true,bootGap:9,files:{parking:"start.mp3",driving:"accOff.mp3"},
+  "911":{label:"FW .911",ver:"R588_260911",fw:true,bootGap:9,files:{parking:"start.mp3",driving:"accOff.mp3"},hidden:true,
     sayOff:[{clip:"driving",note:"accOff.mp3 carries the driving words"}], sayOnEdge:[], tlExit:[], tlExitPause:0,
     chime:{clip:"parking",note:"start.mp3 carries the parking words"}, bootAccOn:false,
     driveImpact:[{clip:"beep"},{clip:"emr"}], tlImpact:null, speakerGate:false,
     wakeVoice:[{clip:"parking",note:"start.mp3 carries the parking words"},{clip:"startRec"},{clip:"beep"},{clip:"emr"}], wakeFolder:"Event",
     blurb:`voices in the wrong files (start.mp3 = «parking», accOff.mp3 = «driving», no accOn.mp3), so ACC ON is silent; ACC sampled once a second — «driving» words at ≈2 s after ACC off, time-lapse or a silent power-off at ≈15 s; impacts ignored in the time-lapse; a driving impact is du + startEmrRec and the running segment becomes a 30 s Event clip`},
-  "918":{label:"FW .918",ver:"R588_260918",fw:true,bootGap:9,files:{},
+  "918":{label:"FW .918",ver:"R588_260918",fw:true,bootGap:9,files:{},hidden:true,
     sayOff:[{clip:"parking"}], sayOnEdge:[], tlExit:[{clip:"driving"}], tlExitPause:2,
     chime:CHIME, bootAccOn:true,
     driveImpact:[{clip:"beep"},{clip:"emr",note:"startEmrRec after every impact — on the bench .918 impacts on the move were not detected at all (50a, GSR_SENSITIVITY read back as OFF)"}], tlImpact:[{clip:"beep"}], speakerGate:true,
     wakeVoice:[CHIME,{clip:"parking",note:"src=0 → accOff.mp3 from the start thread"}], wakeFolder:"Event", lossNote:true,
     blurb:`correct voice files; ACC ON still silent — «מצב נסיעה» only on leaving the time-lapse (≈5–6 s after ACC on, then a 2 s pause, record stop and a reboot); «מצב חניה» at ≈2 s after ACC off whatever the settings; impact in the time-lapse = du only; driving impact = du + startEmrRec; Parking Monitor never decides the power-off`},
-  "929":{label:"FW .929",ver:"R588_260929",fw:true,bootGap:9,files:{},
+  "929":{label:"FW .929",ver:"R588_260929",fw:true,bootGap:9,files:{},hidden:true,
     sayOff:[{clip:"parking"}], sayOnEdge:[{clip:"driving"}], tlExit:[{clip:"driving"}], tlExitPause:2,
     chime:CHIME, bootAccOn:true, noGsrOff:true, appRecVoice:true,
     driveImpact:[{clip:"beep",note:"du only — startEmrRec dropped from the impact path (@0x33e90)"}], tlImpact:[{clip:"beep"}], speakerGate:true,
     wakeVoice:[CHIME,{clip:"parking",note:"src=0 → accOff.mp3 from the start thread"}], wakeFolder:"Event", lossNote:true,
-    blurb:`«מצב נסיעה» on every ACC ON edge (also after a dip shorter than 2 s, with no «parking» before it); driving impact = du only; start/stop from the app are spoken; G-Sensor Sensitivity has no OFF; power-off, time-lapse entry and exit exactly as .918`}
+    blurb:`«מצב נסיעה» on every ACC ON edge (also after a dip shorter than 2 s, with no «parking» before it); driving impact = du only; start/stop from the app are spoken; G-Sensor Sensitivity has no OFF; power-off, time-lapse entry and exit exactly as .918`},
+  /* .930 — the build on the camera (reports/54 §8/§10, 55). Everything not listed here is .929:
+     an impact in the time-lapse now writes a 30 s Event/ clip at full speed and the time-lapse
+     resumes at 4 fps; leaving the time-lapse on ACC ON says «driving» once (before the reboot) and
+     sets a PMC flag 0x120f0058 that mutes the boot-time accOn — the flag is never cleared by the
+     firmware and was seen to survive a power-off (camera, 15:08); the format voice is gone. */
+  "930":{label:"FW 1.0.1.9.20260930",ver:"R588_260930",fw:true,bootGap:10,files:{},
+    sayOff:[{clip:"parking"}], sayOnEdge:[{clip:"driving"}], tlExit:[{clip:"driving",note:"the only «driving» — the boot-time one is muted by 0x120f0058"}], tlExitPause:2,
+    chime:CHIME, bootAccOn:true, stickyAccOn:true, noGsrOff:true, appRecVoice:true, tlEvent:true, lossNote:true,
+    driveImpact:[{clip:"beep",note:"du only"}], tlImpact:[{clip:"beep"}], speakerGate:true,
+    wakeVoice:[CHIME,{clip:"parking",note:"src=0 → accOff.mp3 from the start thread"}], wakeFolder:"Event",
+    factory:{GSR_DRIVE:2,GSR_PARKING:2,PARK_TIMER:0,LOW_POWER:0},
+    blurb:`as .929, plus: an impact in the time-lapse writes a 30 s Event/ clip at 30 fps and the time-lapse resumes at 4 fps; leaving the time-lapse on ACC ON says «מצב נסיעה» once, then a ≈10 s reboot, chime + «ההקלטה החלה» and no second «driving» (PMC flag, never cleared); factory G-sensor MIDDLE / Parking Monitor MIDDLE / time-lapse OFF; the format voice is gone`}
 };
-let FWV="planned", P=FW.planned, fwGen=0;
+/* Product decision: the page runs the build that is on the camera. The other profiles stay in the
+   code (hidden:true) for comparison work but get no button; a stored choice of one of them is
+   moved to the visible build. */
+const FW_DEFAULT="930";
+let FWV=FW_DEFAULT, P=FW[FW_DEFAULT], fwGen=0;
 const fwVer=()=>P.ver;
+function paintFwSel(){
+  const el=$("fwsw"); if(!el) return;
+  el.innerHTML=Object.entries(FW).filter(([,p])=>!p.hidden).map(([k,p])=>
+    `<button type="button" data-v="${k}" aria-pressed="${k===FWV}" onclick="setFw('${k}')">${p.label}</button>`).join("");
+}
 function setFw(v,quiet){
-  if(!FW[v]) v="planned";
+  if(!FW[v] || FW[v].hidden) v=FW_DEFAULT;
   FWV=v; P=FW[v]; fwGen++;                       /* fwGen invalidates any sequence the old build had pending */
   try{ localStorage.setItem("r588sim.fw",v); }catch(e){}
-  document.querySelectorAll(".fwsw button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.v===v));
+  paintFwSel();
   /* carry the running state across: the real builds keep it in their own flags */
   S.busy=false; S.booting=false; S.bootWake=false; S.pollT=0; ACCM={off:0,on:0,prev:2};
   S.tl=(S.mode==="PARKING"); S.down=(S.mode==="SLEEP"); if(S.tl) S.tlSec=PARKSEC[cfg("PARK_TIMER")];
@@ -966,8 +995,8 @@ function setFw(v,quiet){
   if(!quiet){ refresh(false); appRender(); }
 }
 function loadFw(){
-  let v="planned";
-  try{ v=localStorage.getItem("r588sim.fw") || (localStorage.getItem("r588sim.shipped")==="1"?"911":"planned"); }catch(e){}
+  let v=FW_DEFAULT;
+  try{ v=localStorage.getItem("r588sim.fw") || FW_DEFAULT; }catch(e){}
   setFw(v,true);
 }
 /* a delayed step of a firmware sequence; dropped if the build was switched or the power went */
@@ -1035,6 +1064,7 @@ function exitLapse(){
   S.busy=true;
   logEl("", `<span class="cgi">0x10437001</span> ACC on for ≥23 samples in the time-lapse (≈5–6 s) → ${P.tlExit.length?"accOn":"accOn.mp3 — not in this image"}${P.tlExitPause?`, ${P.tlExitPause} s pause (@0x351d4)`:""}, record stop, Wi-Fi off, 0.5 s, <b>reboot</b> (@0x344d0)`);
   enqueue(P.tlExit);
+  if(P.stickyAccOn){ S.pmc58=true; logEl("", `<span style="color:var(--ink-3)">reboot helper writes 1 to PMC 0x120f0058 (@0x345fc) — the boot-time «driving» stays muted from now on</span>`); }
   later(P.tlExitPause,()=>{
     if(rec.active){ closeSeg(true); rec.active=false; paintRec(); }
     if(S.wifi){ S.wifi=false; wifiReason=" — reboot"; refresh(false); }
@@ -1062,7 +1092,7 @@ function bootEnd(){
     logEl("ok",`Booted by the G-sensor (src=0) — publish 0x83000201, the same EMR path as a driving impact: ${P.wakeFolder}/F+R clip, 30 s (record.[N].emr_time; on the card 30–48 s, then a short Normal/ file and the power-off); Wi-Fi stays off, ACC voices muted until the clip ends`);
     enqueue(P.wakeVoice); refresh(false); return;
   }
-  logEl("", `boot complete — <code>start.mp3</code>${S.acc?(P.bootAccOn?", ACC live → accOn from the start thread (@0x331e0)":", ACC live (no accOn.mp3 in this image)"):""}, recording starts in Normal/`);
+  logEl("", `boot complete — <code>start.mp3</code>${S.acc?(!P.bootAccOn?", ACC live (no accOn.mp3 in this image)":(P.stickyAccOn&&S.pmc58)?", ACC live but accOn muted by 0x120f0058":", ACC live → accOn from the start thread (@0x331e0)"):""}, recording starts in Normal/`);
   refresh(true);                                /* BOOT → DRIVING; the boot voices come from transition() */
 }
 function toggleNotes(){ document.body.classList.toggle("shownotes"); }
@@ -1151,9 +1181,10 @@ function transition(prev,next){
     /* the real builds speak on ACC *events* (accEvent), not on mode changes; the mode change
        itself only carries the boot prompts and the time-lapse start */
     if(prev==="BOOT"){
-      const v=[P.chime];
-      if(S.acc && P.bootAccOn) v.push({clip:"driving",wait:3,note:"start thread, ≈3 s into the first file"});
-      v.push({clip:"startRec",wait:(S.acc&&P.bootAccOn)?2.8:3,note:"≈5.8 s into the first file (0x17098, gated on the recorder running)"});
+      const v=[P.chime], sayOn=S.acc && P.bootAccOn && !(P.stickyAccOn && S.pmc58);
+      if(sayOn) v.push({clip:"driving",wait:3,note:"start thread, ≈3 s into the first file"});
+      else if(S.acc && P.stickyAccOn && S.pmc58) logEl("", `<span style="color:var(--ink-3)">no «מצב נסיעה» at boot — 0x120f0058 is still 1 (@0x332e8), nothing clears it</span>`);
+      v.push({clip:"startRec",wait:sayOn?2.8:3,note:"≈5.8 s into the first file (0x17098, gated on the recorder running)"});
       return v;
     }
     if(next==="PARKING") return [{clip:"lapse"}];
@@ -1205,7 +1236,9 @@ function refresh(sound){
   if(next==="BOOT") S.wifi=false;
   if(next==="DRIVING" && prev!=="DRIVING"){ S.wifi=true; S.wifiT=0; S.parkT=0; S.parkDone=false; }
   if(next==="PARKING" && prev!=="PARKING") lvpArm();       /* LVP_Enable(1) @0x35168 — the only arming point */
-  if(next==="OFF"){ S.parkT=0; S.parkDone=false; S.down=false; S.tl=false; S.booting=false; S.busy=false; S.bootWake=false; fwGen++; lvpReset(); }
+  if(next==="OFF"){ S.parkT=0; S.parkDone=false; S.down=false; S.tl=false; S.booting=false; S.busy=false; S.bootWake=false; fwGen++; lvpReset();
+    if(!S.bplus && S.pmc58){ S.pmc58=false; logEl("", `<span style="color:var(--ink-3)">B+ removed — PMC 0x120f0058 assumed cleared (NOT PROVEN)</span>`); } }
+  if(next==="PARKING" && prev!=="PARKING") S.tlFps4=false;
   /* In the real builds the ignition drives the access point: ACC OFF sends ProcWifiSwitchEvent(3,0)
      -> wifi_stop and ACC ON sends (3,1); source 3 plays no sound. That switching lives in
      accEvent(). The branch that would merely notify the app instead of stopping the radio is dead:
@@ -1276,7 +1309,8 @@ function impact(){
   shakeCam();
   if(evt.active){
     logEl("", `<b>G-sensor impact</b>`);
-    logEl("", `<span style="color:var(--ink-3)">already writing the clip from the previous impact — this one adds nothing</span>`);
+    logEl("", `<span style="color:var(--ink-3)">already writing the clip from the previous impact — ${P.fw?"du only (state1≠0), no new event, no extension":"this one adds nothing"}</span>`);
+    if(P.fw && !(P.speakerGate&&spkBusy())) enqueue([{clip:"beep"}]);
     /* seen on the card (.929, 2026-09-29): a second impact during the G-wake clip cost the front channel
        about 3 s of video (11:38:13 → 11:38:16) and the rear 0.8 s — observation, not modelled as a gap */
     if(P.lossNote && evt.fromSleep) logEl("", `<span style="color:var(--accent)">on the card this impact cost the front channel ≈3 s of video and the rear 0.8 s (observed, .929)</span>`);
@@ -1288,6 +1322,17 @@ function impact(){
        (du only, nothing else read), then the recorder running, then the speaker, then the clip */
     logEl("", asleep?`<b>G-sensor impact</b> — the camera is down`:`<b>G-sensor impact</b>`);
     if(lapsing){
+      if(P.tlEvent){
+        /* .930: the UI gate is gone for the G-sensor event (@0x33ee0–0x33efc): du → publish 0x83000201 →
+           the recorder switches TL→NORMAL, writes emr_time = 30 s at full speed, then back to LAPSE.
+           On the card: Event/F,R 14:50:00→14:50:30 at 30 fps, then TL without a gap; one clip started
+           ≈2 s after the impact (those seconds stayed in the time-lapse file). */
+        enqueue(P.tlImpact);
+        if(rec.active){ closeSeg(true); rec.active=false; }
+        evt={active:true,t:0,name:stamp(simMs),fromSleep:false,fromLapse:true,seg:30,rate:mbps(),folder:"Event"};
+        logEl("ok",`Time-lapse interrupted — 30 s Event/F+R clip at full speed (may start ≈2 s after the impact; LVP is not handled while it runs, @0x35354), then back to the time-lapse`);
+        refresh(false); return;
+      }
       if(P.tlImpact){ enqueue(P.tlImpact); logEl("", `<span style="color:var(--ink-3)">du only — lowFpsRecIng is set, no Event clip (@0x33dec); Parking Monitor and sensitivity not read</span>`); }
       else logEl("", `<span style="color:var(--accent)">ignored — this build drops impacts while the time-lapse runs</span>`);
       return;
@@ -1503,6 +1548,7 @@ function formatSD(){
   if(rec.active){ startSeg(); }
   logEl("", `<span class="cgi">sdcommand.cgi?-cmd=format</span>`);
   logEl("ok","SD card formatted — all clips erased (FAT32, 64K clusters)");
+  if(P.fw) logEl("", `<span style="color:var(--ink-3)">no voice — startformatCard.mp3 is not called (.930 removed the call @0x34ad8; earlier builds never reached it); getsdinfo reports status=1 while formatting, recording resumes ≈10 s later</span>`);
   paintClips(); paintRec();
 }
 function startOta(){
@@ -1518,9 +1564,10 @@ function startOta(){
 /* PDT_UI_FactoryReset @0x34708, in its own order: announce, indicator solid, stop recording,
    Wi-Fi down, wait 2 s, reload every field of paramdef, wait 0.5 s, sync and reboot. */
 function factoryReset(){
-  const D={MEDIAMODE:6,SPLIT:60,AUDIO:1,GSR_DRIVE:1,GSR_PARKING:0,PARK_TIMER:0,
-           LOW_FPS:333,MIRROR:1,FLIP:0,LOW_POWER:0,VOLUME:80};  /* = paramdef selVal */
+  const D=Object.assign({MEDIAMODE:6,SPLIT:60,AUDIO:1,GSR_DRIVE:1,GSR_PARKING:0,PARK_TIMER:0,
+           LOW_FPS:333,MIRROR:1,FLIP:0,LOW_POWER:0,VOLUME:80},P.factory||{});  /* = paramdef selVal; .930 overrides G-sensor/Monitor to MIDDLE */
   enqueue([{clip:"reset"}]);
+  if(P.stickyAccOn){ S.pmc58=true; logEl("", `<span style="color:var(--ink-3)">FactoryReset writes 1 to PMC 0x120f0058 (@0x3486c) — the boot-time «driving» stays muted</span>`); }
   if(rec.active){ closeSeg(); rec.active=false; }
   if(S.wifi){ S.wifi=false; wifiReason=" — factory reset"; }
   logEl("", `<span class="cgi">reset.cgi</span>`);
@@ -1528,7 +1575,7 @@ function factoryReset(){
   setTimeout(()=>{
     for(const k in D) CFG[k].v=D[k];
     forgetCfg(); appNav=null; appRender();
-    logEl("ok","All parameters reloaded from paramdef — Parking monitor and time lapse back to off");
+    logEl("ok",`All parameters reloaded from paramdef — G-sensor ${valLabel("GSR_DRIVE")}, Parking monitor ${valLabel("GSR_PARKING")}, time lapse ${valLabel("PARK_TIMER")}`);
     logEl("", `Wi-Fi name and password back to the factory pair <b>R588_…</b> / <b>12345678</b>`);
     setTimeout(()=>{ logEl("", "Camera reboots"); refresh(true); },700);
   },2000);
@@ -1537,18 +1584,17 @@ loadCfg();
 loadFw();
 appRender();
 $("rulenote").innerHTML =
- `<b>The rule (Planned).</b> Power comes from <b>B+</b>; <b>ACC</b> only selects the mode. Every transition is spoken
-  <b>once</b>, at once: <b>ACC ON → <span class="he">מצב נסיעה</span></b> (driving mode) ·
-  <b>ACC OFF →</b> one word chosen by the settings — timer on: <b><span class="he">צילום בחניה הופעל</span></b> (parking recording on);
-  sensor only: <b><span class="he">מצב חניה</span></b> (parking mode); Parking Monitor off: <code>powerOff.mp3</code> and the camera powers down.
-  With the timer off and the monitor on the camera sleeps armed:
-  an impact <b>wakes it, beeps, writes one protected clip and it sleeps again</b>. The header selector switches the page to a
-  vendor build (<b>.911 / .918 / .929</b>) as it really behaves — see the version table in the developer notes.
-  <br><br><b>Wi-Fi.</b> The access point runs <b>only while driving</b>, and even then it does not stay up forever:
-  after a few minutes it <b>shuts itself down and says so</b> (<code>wifiOff.mp3</code>) to save power — pressing the
-  camera button brings it back (<code>wifiOn.mp3</code>). On ACC off it goes off and stays off through parking, sleep
-  and the impact wake, so the car is never left broadcasting while unattended.
-  <br><br><b>The button.</b> Press the button on the camera photo: a <b>short press toggles Wi-Fi</b>, and
+ `<b>The rule (firmware 1.0.1.9.20260930, as on the camera).</b> Power comes from <b>B+</b>; <b>ACC</b> is sampled <b>once a second</b>.
+  <b>ACC OFF →</b> <b><span class="he">מצב חניה</span></b> at ≈2 s (by the code; the operator hears it at ≈5 s) and Wi-Fi off, recording goes on in <code>Normal/</code>;
+  at ≈15 s, by <b>Time lapse</b> alone: on → time-lapse, <b><span class="he">צילום בחניה הופעל</span></b>; off → silent power-down, G-sensor armed if <b>Parking Monitor</b> is on.
+  <b>ACC ON →</b> within those 15 s just <span class="he">מצב נסיעה</span>; from the time-lapse: <span class="he">מצב נסיעה</span> once, 2 s, a ≈10 s reboot without recording, then chime + <span class="he">ההקלטה החלה</span>
+  (no second "driving": the reboot sets PMC flag 0x120f0058, which nothing clears — every later start with ACC on is chime + "recording started" only; the owner accepts this).
+  <b>Impacts:</b> on the move <code>du</code> and the running segment becomes a 30 s <code>Event/</code> clip; in the time-lapse <code>du</code> and a 30 s <code>Event/</code> clip at full speed, then the time-lapse resumes at 4 fps; when the camera is down (Monitor on) it boots, says <span class="he">מצב חניה</span> and writes one 30 s <code>Event/</code> clip.
+  Earlier builds (Planned target logic, .911, .918, .929) remain in the code as hidden profiles.
+  <br><br><b>Wi-Fi.</b> The access point follows the ignition: it goes off at the ≈2 s ACC-off event and comes back on the
+  ACC-on edge and at every boot; it stays off through the time-lapse, the power-down and an impact wake. Its own idle
+  timer (300 s) only counts while no phone is attached. The camera button toggles it by hand (<code>wifiOn.mp3</code> / <code>wifiOff.mp3</code>).
+  <br><br><b>The button.</b> Press the button on the camera photo: under 3 s = manual emergency clip, 3–5 s <b>toggles Wi-Fi</b>, and
   <b>holding it longer than 5 seconds restores factory settings</b>. The <b>Samsonix Pro</b> app reaches the camera only
   while the Wi-Fi access point is up — that is, while driving, or after you switch it back on with the button; otherwise it shows as offline.
   <br><br><b>App control.</b> The Samsonix Pro screens, labels, options and factory defaults are reproduced as they are on
@@ -1557,11 +1603,11 @@ $("rulenote").innerHTML =
   camera keeps recording after ACC off · <code>Record audio</code> drops the audio track · <code>Volume → Mute</code>
   silences the announcements · <code>Loop Recording Time</code> and <code>Video resolution</code> change segment length
   and file size.
-  <br><br><b>Worth noting from the shipped defaults:</b> <code>Parking Monitor</code> and
-  <code>Time lapse recording duration</code> are both <b>off</b> out of the box — so a new camera neither records nor
-  reacts to impacts once the engine is off until the owner turns them on in the app.
+  <br><br><b>Worth noting from the .930 defaults:</b> <code>G-Sensor Sensitivity</code> and <code>Parking Monitor</code> are
+  <b>Medium</b> out of the box, <code>Time lapse recording duration</code> is <b>off</b> — so a new camera powers down ≈15 s
+  after the engine stops and an impact boots it for one 30 s clip, until the owner turns the time-lapse on in the app.
   <br><br><b>What gets written.</b> Driving → <code>Normal/F</code> + <code>Normal/R</code>. Parking with the timer on →
-  time-lapse in <code>Parking/F</code> + <code>Parking/R</code>. Any impact → a protected clip in <code>Event/F</code> +
+  time-lapse in <code>Parking/F</code> + <code>Parking/R</code> (<code>*_t.TS</code>). Any impact → a protected clip in <code>Event/F</code> +
   <code>Event/R</code> that loop recording never overwrites. Recording runs at ${SIM}× speed so segments complete while you watch.`;
 setVoiceIdle(); paintRec(); paintClips(); refresh(false);
 
@@ -1582,7 +1628,7 @@ setVoiceIdle(); paintRec(); paintClips(); refresh(false);
 /* Auto-update: GitHub Pages / the browser can serve a cached build, so the page polls its own
    source and reloads the moment a newer version is deployed — no Ctrl+F5. SIM_BUILD is stamped
    automatically on every deploy; the reload uses a ?v= query to bypass the cache for certain. */
-const SIM_BUILD="1790681485";
+const SIM_BUILD="1790770643";
 (function(){
   let busy=false;
   async function check(){
