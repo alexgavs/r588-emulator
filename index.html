@@ -1,39 +1,5 @@
 <meta charset="utf-8"><title>R588 Parking Logic</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Fira+Sans:wght@300;400;500;600;700&display=swap">
-<style>
-:root{
-  --bg:#F8FAFC; --surface:#FFFFFF; --surface-2:#F1F5F9; --surface-3:#E9EDF1;
-  --border:#E2E8F0; --border-strong:#CBD5E1;
-  --ink:#0F172A; --ink-2:#475569; --ink-3:#7A8699;
-  --primary:#1E293B; --accent:#DC2626;
-  --drive:#059669; --drive-ink:#047857; --drive-bg:#ECFDF5;
-  --park:#D97706;  --park-ink:#B45309;  --park-bg:#FFFBEB;
-  --sleep:#7C3AED; --sleep-ink:#6D28D9; --sleep-bg:#F5F3FF;
-  --off:#94A3B8;   --off-ink:#64748B;   --off-bg:#F1F5F9;
-  --rec:#DC2626;   --rec-bg:#FEF2F2;
-  --mono:'Fira Code',ui-monospace,SFMono-Regular,monospace;
-  --sans:'Fira Sans',system-ui,-apple-system,sans-serif;
-  --r:10px; --r-lg:14px;
-  --sh:0 1px 2px rgba(15,23,42,.05); --sh-lg:0 1px 3px rgba(15,23,42,.06),0 8px 24px rgba(15,23,42,.06);
-  --t:180ms cubic-bezier(.2,.8,.2,1);
-}
-*{box-sizing:border-box}
-html{-webkit-text-size-adjust:100%}
-body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.55}
-.tnum{font-variant-numeric:tabular-nums}
-svg.i{width:20px;height:20px;flex:none;stroke:currentColor;fill:none;stroke-width:1.75;stroke-linecap:round;stroke-linejoin:round}
-svg.i.sm{width:16px;height:16px}
-:focus-visible{outline:2px solid var(--primary);outline-offset:2px;border-radius:6px}
-.wrap{max-width:1340px;margin:0 auto;padding-block:28px;padding-inline:20px}
-.layout{display:grid;grid-template-columns:minmax(0,340px) minmax(0,1fr) minmax(0,1.1fr);gap:16px;align-items:start}
-.left{position:sticky;top:20px;display:flex;flex-direction:column;gap:16px}
-.mid,.rcol{display:flex;flex-direction:column;gap:16px;min-width:0}
-.pdesc{padding:3px 18px 0;font-size:12px;color:var(--ink-3);line-height:1.45}
-@media(max-width:1079px){.layout{grid-template-columns:minmax(0,360px) 1fr}.rcol{grid-column:1/-1}}
-
-title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Fira+Sans:wght@300;400;500;600;700&display=swap">
@@ -92,7 +58,7 @@ h1{font-family:var(--mono);font-weight:700;font-size:clamp(24px,3.4vw,32px);lett
 .card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r-lg);box-shadow:var(--sh);min-width:0;overflow:hidden}
 .chead{display:flex;align-items:center;gap:9px;padding:14px 18px 0;color:var(--ink-3)}
 .chead h2{font-family:var(--mono);font-weight:600;font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;margin:0;color:var(--ink-3)}
-.chead .note{margin-left:auto;font-family:var(--mono);font-size:10.5px;color:var(--ink-3);text-transform:none;letter-spacing:0}
+.chead .note{margin-inline-start:auto;font-family:var(--mono);font-size:10.5px;color:var(--ink-3);text-transform:none;letter-spacing:0}
 .camshot{position:relative;margin:12px 18px 0;border-radius:var(--r);overflow:hidden;background:#fff;cursor:crosshair}
 .camshot.shake{animation:shake .55s cubic-bezier(.36,.07,.19,.97)}
 @keyframes shake{
@@ -201,26 +167,26 @@ h1{font-family:var(--mono);font-weight:700;font-size:clamp(24px,3.4vw,32px);lett
 .applogo svg{width:18px;height:18px;stroke-width:2}
 .appname{font-family:var(--mono);font-weight:700;font-size:14.5px;color:#fff;line-height:1.2}
 .appname span{display:block;font-family:var(--sans);font-weight:400;font-size:10.5px;color:#94A3B8}
-.conn{margin-left:auto;display:inline-flex;align-items:center;gap:7px;font-family:var(--mono);font-size:10.5px;font-weight:500;
+.conn{margin-inline-start:auto;display:inline-flex;align-items:center;gap:7px;font-family:var(--mono);font-size:10.5px;font-weight:500;
       padding:5px 11px;border-radius:999px;background:#334155;color:#94A3B8;transition:var(--t)}
 .conn[data-on="1"]{background:#064E3B;color:#6EE7B7}
 .conn i{width:7px;height:7px;border-radius:50%;background:currentColor;flex:none}
 /* phone screen */
-.phone{--o:#F4511E;background:#EFF1F5;padding:0 0 14px;font-family:'Roboto',var(--sans)}
+.phone{--o:#F4511E;position:relative;background:#EFF1F5;padding:0 0 14px;font-family:'Roboto',var(--sans)}
 .pbar{position:relative;display:flex;align-items:center;justify-content:center;background:#fff;height:52px}
-.pback{position:absolute;left:8px;top:50%;transform:translateY(-50%);width:40px;height:40px;border:0;background:transparent;
+.pback{position:absolute;inset-inline-start:8px;top:50%;transform:translateY(-50%);width:40px;height:40px;border:0;background:transparent;
        cursor:pointer;color:#111;font-size:26px;line-height:1;display:grid;place-items:center;border-radius:8px}
 .pback[hidden]{display:none}
 .pback:hover{background:#0000000d}
 .ptitle{font-size:17px;font-weight:500;color:#111}
 .paccent{height:4px;background:var(--o)}
 .plist{background:#fff;border-radius:10px;margin:14px 12px 0;overflow:hidden}
-.pitem{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:#fff;border:0;
+.pitem{display:flex;align-items:center;gap:10px;width:100%;text-align:start;background:#fff;border:0;
        padding:15px 16px;min-height:56px;cursor:pointer;font:inherit}
 .pitem+.pitem{border-top:1px solid #E9E9EC}
 .pitem .pl{font-size:15px;color:#1a1a1a;flex:1;min-width:0}
 .pitem .pv{font-size:15px;color:#8A8A8E;white-space:nowrap}
-.pitem .pchev{color:#B0B0B5;font-size:19px;line-height:1}
+.pitem .pchev{color:#B0B0B5;font-size:19px;line-height:1;display:inline-block}
 .pitem[data-static="1"]{cursor:default}
 .pitem:not([data-static="1"]):hover{background:#FAFAFB}
 .phint{color:#E8452C;font-size:12.5px;line-height:1.45;padding:0 16px 14px;background:#fff}
@@ -252,12 +218,13 @@ h1{font-family:var(--mono);font-weight:700;font-size:clamp(24px,3.4vw,32px);lett
 .clips li{display:flex;align-items:center;gap:9px;padding:8px;font-family:var(--mono);font-size:12px}
 .clips li+li{border-top:1px solid var(--border)}
 .clips .nm{color:var(--ink-2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.clips .sz{margin-left:auto;color:var(--ink-3);white-space:nowrap;font-variant-numeric:tabular-nums}
+.clips .sz{margin-inline-start:auto;color:var(--ink-3);white-space:nowrap;font-variant-numeric:tabular-nums}
 .clips .lk{color:var(--accent);display:grid;place-items:center}
 .empty{color:var(--ink-3);font-family:var(--sans);font-size:13.5px;padding:16px 12px}
 .log ul{list-style:none;margin:0;padding:0 10px 14px;max-height:430px;overflow:auto}
 .log li{display:grid;grid-template-columns:62px 1fr;gap:10px;padding:8px;font-size:13px}
 .log li+li{border-top:1px solid var(--border)}
+.log li.empty{display:block}
 .log .t{font-family:var(--mono);font-size:11px;color:var(--ink-3);padding-top:2px;font-variant-numeric:tabular-nums}
 .log .snd{color:var(--primary);font-weight:600;font-family:var(--mono);font-size:12px}
 .log .ok{color:var(--drive-ink);font-weight:500}
@@ -268,40 +235,86 @@ h1{font-family:var(--mono);font-weight:700;font-size:clamp(24px,3.4vw,32px);lett
 .snd-item .f{font-family:var(--mono);font-size:12.5px;font-weight:600;color:var(--primary)}
 .snd-item .he{direction:rtl;font-weight:600;font-size:16px}
 .snd-item .d{font-size:12.5px;color:var(--ink-2)}
-.notes{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--primary);border-radius:var(--r-lg);padding:16px 20px;font-size:14px;color:var(--ink-2);line-height:1.7}
+.notes{background:var(--surface);border:1px solid var(--border);border-inline-start:3px solid var(--primary);border-radius:var(--r-lg);padding:16px 20px;font-size:14px;color:var(--ink-2);line-height:1.7}
 .notes b{color:var(--ink);font-weight:600}
 .notes code{font-family:var(--mono);font-size:12.5px;background:var(--surface-2);padding:1px 6px;border-radius:5px;color:var(--primary)}
 .notes .he{direction:rtl;font-weight:600;color:var(--ink)}
 .notes table{border-collapse:collapse;font-size:12.5px;line-height:1.45;margin-top:10px;width:100%}
-.notes td,.notes th{border:1px solid var(--border);padding:5px 8px;vertical-align:top;text-align:left}
+.notes td,.notes th{border:1px solid var(--border);padding:5px 8px;vertical-align:top;text-align:start}
 .notes th{background:var(--surface-2);font-weight:600;color:var(--ink)}
 .notes td:first-child{font-weight:600;color:var(--ink);white-space:nowrap}
+.notes,.notes *{direction:ltr}
 body.simple .eng-only{display:none!important}
 body.eng .simple-only{display:none!important}
 .intro{margin:0 0 10px;font-size:14px;color:var(--ink-2)}
-.howto{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--primary);border-radius:var(--r-lg);padding:16px 20px;margin-top:16px;font-size:14px;color:var(--ink-2);line-height:1.6}
+.howto{background:var(--surface);border:1px solid var(--border);border-inline-start:3px solid var(--primary);border-radius:var(--r-lg);padding:16px 20px;margin-top:16px;font-size:14px;color:var(--ink-2);line-height:1.6}
 .howto h2{margin:0 0 8px;font-size:15px;color:var(--ink)}
-.howto ol{margin:0;padding-left:20px}
+.howto ol{margin:0;padding-inline-start:20px}
 .howto li{margin:4px 0}
 .howto b{color:var(--ink);font-weight:600}
 .fwlabel{margin-top:14px;font-family:var(--mono);font-size:11px;color:var(--ink-3);text-align:center}
 @media(prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 
+/* ---- languages and right-to-left (he, ar) ---- */
+.eyebrow{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.langsw{margin-inline-start:auto;display:inline-flex;border:1px solid var(--border);border-radius:999px;overflow:hidden;
+  background:var(--surface);letter-spacing:0;text-transform:none;font-family:var(--sans)}
+.langsw button{border:0;background:transparent;color:var(--ink-2);font:inherit;font-size:12px;line-height:1.2;padding:5px 11px;cursor:pointer}
+.langsw button+button{border-inline-start:1px solid var(--border)}
+.langsw button:hover{background:var(--surface-2);color:var(--ink)}
+.langsw button[aria-pressed="true"]{background:var(--primary);color:#fff}
+html[lang="ar"] body *{letter-spacing:0}          /* tracking breaks the joined Arabic script */
+html[lang="he"] .chead h2,html[lang="he"] .eyebrow,html[lang="he"] .chip,html[lang="he"] .mcard b{letter-spacing:.02em}
+/* the ‹ › chevrons are bidi-mirrored by the browser itself in a right-to-left page */
+.ltr{direction:ltr;unicode-bidi:isolate}        /* numbers, units, file names inside a right-to-left line */
+/* switches mirror with the layout: in a right-to-left app the knob sits on the left when on */
+[dir="rtl"] .sw::after{left:auto;right:3px}
+[dir="rtl"] .ptoggle::after{left:auto;right:2px}
+[dir="rtl"] .sw[aria-pressed="true"]::after,[dir="rtl"] .ptoggle[aria-pressed="true"]::after{transform:translateX(-22px)}
+.holdbar{direction:ltr}                            /* the hold gauge is drawn on the photo, which does not mirror */
+.fn,.clips .nm,.spec,.usage div,#wifitext,#conntext,.poffb,.pitem .pv,.rbadge,.badge,.mline span{unicode-bidi:plaintext}
+.voice .he{unicode-bidi:plaintext}
+/* Samsonix Pro confirm / input dialogs, as in the app */
+.pdim{position:absolute;inset:0;background:rgba(0,0,0,.45);display:grid;place-items:center;padding:18px;z-index:5}
+.pdlg{background:#fff;border-radius:12px;padding:20px 18px 16px;width:100%;max-width:300px;font-family:'Roboto',var(--sans)}
+.pdlg .dt{font-weight:700;font-size:16px;color:#1a1a1a;text-align:center;margin-bottom:12px}
+.pdlg .dm{font-size:15px;color:#1a1a1a;line-height:1.45;margin-bottom:16px;text-align:start}
+.pdlg .din{display:block;width:100%;box-sizing:border-box;border:0;padding:9px 8px;font:inherit;font-size:14px;color:#1a1a1a;
+  background:#F3F3F5;border-radius:6px;margin-bottom:10px}
+.pdlg .din::placeholder{color:#A5A5AA}
+.pdlg .dbtns{display:flex;gap:12px;margin-top:8px}
+.pdlg .dbtns button{flex:1;border-radius:999px;padding:9px 0;font:inherit;font-size:14px;cursor:pointer}
+.pdlg .dcancel{background:#fff;border:1px solid #222;color:var(--o)}
+.pdlg .dok{background:var(--o);border:1px solid var(--o);color:#fff}
+/* Fira Code has no Hebrew / Arabic glyphs: the labels set in the mono face take the text face
+   there (file names, folders and the SSID stay mono — they are Latin) */
+html[lang="he"] :is(h1,.chip,.mcard b,.chead h2,.mline,.sline,.lab b,.badge,.pill,.psuhd,.psuhd .cut,.holdlab,.keyhint,.voice .en,.appname,.conn,.usage div,.log b,.log .snd,.fwlabel,.spec,.rbadge,.empty,.poffb),
+html[lang="ar"] :is(h1,.chip,.mcard b,.chead h2,.mline,.sline,.lab b,.badge,.pill,.psuhd,.psuhd .cut,.holdlab,.keyhint,.voice .en,.appname,.conn,.usage div,.log b,.log .snd,.fwlabel,.spec,.rbadge,.empty,.poffb){font-family:var(--sans)}
+html[lang="he"] h1,html[lang="ar"] h1{letter-spacing:0}
+/* Buyer view on a desktop screen: the console (three columns) is sized by fitLayout() to the first
+   screen, and the page scrolls on to "How it works" below it — the engineering view keeps the
+   fixed, non-scrolling console with its notes behind a button. */
+@media(min-width:1080px) and (min-height:640px){
+  body.simple{overflow:auto}
+  body.simple .wrap{height:auto;min-height:100%}
+  body.simple .layout{flex:0 0 auto}
+}
 
 
-.fwsw{display:inline-flex;gap:0;margin-left:10px;border:1px solid var(--border);border-radius:999px;overflow:hidden;vertical-align:1px}
+
+.fwsw{display:inline-flex;gap:0;margin-inline-start:10px;border:1px solid var(--border);border-radius:999px;overflow:hidden;vertical-align:1px}
 .fwsw button{border:0;background:var(--surface);color:var(--ink-3);font:inherit;font-size:10.5px;
   letter-spacing:.08em;text-transform:uppercase;padding:3px 10px;cursor:pointer}
 .fwsw button[aria-pressed="true"]{background:var(--primary);color:#fff}
 .modes{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:0 0 11px}
-.mcard{background:var(--surface);border:1px solid var(--border);border-left:3px solid var(--primary);
+.mcard{background:var(--surface);border:1px solid var(--border);border-inline-start:3px solid var(--primary);
   border-radius:10px;padding:8px 11px;min-width:0}
 .mcard b{display:block;font-family:var(--mono);font-size:11px;letter-spacing:.02em;color:var(--ink);margin-bottom:2px}
 .mcard span{display:block;font-size:12px;line-height:1.4;color:var(--ink-2)}
 @media(max-width:820px){.modes{grid-template-columns:1fr}}
 .notesbtn{display:none}
 @media(min-width:1080px) and (min-height:640px){
-  .notesbtn{display:inline-block;margin-left:14px;border:1px solid var(--border);background:var(--surface);
+  .notesbtn{display:inline-block;margin-inline-start:14px;border:1px solid var(--border);background:var(--surface);
     color:var(--ink-2);font:inherit;font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;
     padding:3px 11px;border-radius:999px;cursor:pointer;vertical-align:1px}
   .notesbtn:hover{border-color:var(--primary);color:var(--primary)}
@@ -421,15 +434,15 @@ body.eng .simple-only{display:none!important}
 
 <div class="wrap">
   <header>
-    <div class="eyebrow">Samsonix · R588<span class="fwsw eng-only" id="fwsw" role="group" aria-label="Firmware version" title="The firmware this page runs, as it really behaves on the camera"></span><button type="button" class="notesbtn eng-only" id="notesbtn" onclick="toggleNotes()">Notes</button></div>
-    <h1>R588 Parking Logic</h1>
-    <p class="intro simple-only">Interactive demo of the Samsonix R588 / R688 dash cam logic. Use the controls to switch the ignition, shake the camera, change settings in the app and see what the camera does.</p>
-    <p class="lede simple-only">What the camera does when you stop the engine. <b>Time lapse</b> decides whether the parked camera keeps recording or switches off; <b>Parking Monitor</b> decides whether a knock wakes it up.</p>
+    <div class="eyebrow">Samsonix · R588<span class="fwsw eng-only" id="fwsw" role="group" aria-label="Firmware version" title="The firmware this page runs, as it really behaves on the camera"></span><button type="button" class="notesbtn eng-only" id="notesbtn" onclick="toggleNotes()">Notes</button><span class="langsw simple-only" id="langsw" role="group" aria-label="Language"></span></div>
+    <h1 data-i18n="title">R588 Parking Logic</h1>
+    <p class="intro simple-only" data-i18n="intro">Interactive demo of the Samsonix R588 / R688 dash cam logic. Use the controls to switch the ignition, shake the camera, change settings in the app and see what the camera does.</p>
+    <p class="lede simple-only" data-i18n="lede">What the camera does when you stop the engine. <b>Time lapse</b> decides whether the parked camera keeps recording or switches off; <b>Parking Monitor</b> decides whether a knock wakes it up.</p>
     <p class="lede eng-only">What the camera does when the engine stops, firmware <b>1.0.1.9.20260930</b>. <b>Time lapse</b> decides whether the parked camera keeps recording or powers down; <b>Parking Monitor</b> decides whether an impact wakes it once it is down.</p>
     <div class="modes simple-only">
-      <div class="mcard"><b>Time lapse off</b><span>Ignition off &rarr; the camera says "parking mode" and switches off about 15 seconds later. With Parking Monitor on, a knock wakes it to save a 30-second event clip.</span></div>
-      <div class="mcard"><b>Time lapse on</b><span>The camera says "parking mode", then "parking recording on" and records a slow time-lapse for the chosen time. A knock saves a 30-second event clip at full speed, then the time-lapse continues.</span></div>
-      <div class="mcard"><b>Ignition back on</b><span>The camera says "driving mode", restarts in about 10 seconds and plays its start-up chime with "recording started". Normal recording continues.</span></div>
+      <div class="mcard"><b data-i18n="mc1t">Time lapse off</b><span data-i18n="mc1">Ignition off &rarr; the camera says "parking mode" and switches off about 15 seconds later. With Parking Monitor on, a knock wakes it to save a 30-second event clip.</span></div>
+      <div class="mcard"><b data-i18n="mc2t">Time lapse on</b><span data-i18n="mc2">The camera says "parking mode", then "parking recording on" and records a slow time-lapse for the chosen time. A knock saves a 30-second event clip at full speed, then the time-lapse continues.</span></div>
+      <div class="mcard"><b data-i18n="mc3t">Ignition back on</b><span data-i18n="mc3">The camera says "driving mode", restarts in about 10 seconds and plays its start-up chime with "recording started". Normal recording continues.</span></div>
     </div>
     <div class="modes eng-only">
       <div class="mcard"><b>Lapse off</b><span>ACC off &rarr; "parking mode" at ≈2 s, then a silent power-down at ≈15 s. Monitor on: an impact boots the camera for one 30 s Event clip; Monitor off: it stays down until the ignition.</span></div>
@@ -437,31 +450,31 @@ body.eng .simple-only{display:none!important}
       <div class="mcard"><b>Ignition back on</b><span>Within 15 s: nothing changes. From the time-lapse: "driving mode" once, then a ≈10 s reboot without recording, chime + "recording started" (no second "driving mode").</span></div>
     </div>
     <div class="chips" id="chips">
-      <span class="chip" data-s="OFF"><i></i>OFF · no B+</span>
-      <span class="chip" data-s="DRIVING"><i></i>DRIVING · ACC on</span>
-      <span class="chip" data-s="PARKING"><i></i>PARKING · timer on</span>
-      <span class="chip" data-s="SLEEP"><i></i>SLEEP · impact-armed</span>
+      <span class="chip" data-s="OFF"><i></i><span class="simple-only" data-i18n="chip.OFF">OFF · no power</span><span class="eng-only">OFF · no B+</span></span>
+      <span class="chip" data-s="DRIVING"><i></i><span class="simple-only" data-i18n="chip.DRIVING">DRIVING · ignition on</span><span class="eng-only">DRIVING · ACC on</span></span>
+      <span class="chip" data-s="PARKING"><i></i><span class="simple-only" data-i18n="chip.PARKING">PARKING · time-lapse</span><span class="eng-only">PARKING · timer on</span></span>
+      <span class="chip" data-s="SLEEP"><i></i><span class="simple-only" data-i18n="chip.SLEEP">OFF · waiting for a knock</span><span class="eng-only">SLEEP · impact-armed</span></span>
     </div>
   </header>
 
   <div class="layout">
     <aside class="left">
     <section class="card">
-      <div class="chead"><svg class="i sm"><use href="#ic-cam"/></svg><h2>Camera</h2></div>
-      <div class="pdesc">The camera as it behaves in the car. The button on the photo is live.</div>
-      <div class="camshot" title="Double-click the camera to simulate a G-sensor impact">
+      <div class="chead"><svg class="i sm"><use href="#ic-cam"/></svg><h2 data-i18n="cam.h">Camera</h2></div>
+      <div class="pdesc" data-i18n="cam.desc">The camera as it behaves in the car. The button on the photo is live.</div>
+      <div class="camshot" data-i18n-title="cam.shot" title="Double-click the camera to simulate a G-sensor impact">
         <img src="data:image/jpeg;base64,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R6MuwaMuw3mjsjR2QNHo67Boy7DeaOyNGZA0ejLsGjLsN5ozJOjMgaLRl2DRl2G90ZkaMyBotGXYNGXYb3RWRorIGi0ZdhQxDqsS2kvisr950Gislt3DM74PGfmmV/aUDUaKuwaKuw6HRWRoqAaWFZewsS7futTbCzQ7qOj3No3fSIcrLVS2x4WGvCimg0RkoahXzLLSwz3DaaSTSL71tNip+IGggf0k15z0OG+DMeY4BxDv4S0FaiXSu2VX33Czznbw8dBJDsIsW5RZeOgGS+cu4h0rp6zNlfVmhpIizYhyq0Mq+Y2s8P1p1G306C4459IhGnQXG3PpEA5xZsrJpFRdipIiabTpNOguOOfSIRp0Fxtz00A5yabRNNp0enQXG3PpEI06C4259IgHOzTaRNNp0enQXG3PTQadBcbc9NAOcmm0TTadFp0Fxtz00GnQXG3PTQDnZptImm06LToLjbnpoNNguNuemgHOzTaJptOh06D4256aDTYPjbnpoBz1SbRNNp0GmwfG3PTQadB8bc9NAOemm0TTadDpsHxtz00I02D4256aAc/NNomm06DTYPjbnpoRpsHxpz00A5+abRUm06DTYPjbnpoNNg+NOemgHPzTaJptN/psHxtz00GmwfGnPTQDn5ptE02m/wBNg+NOemg02D4056aAaCabRNNpvtNg+NOemg0yD4056aAaCabRNNpvtMhONOemg0yD4056aAaGabRNNpvtNg+NOemhGmQnGnPTQDQzTaKk2m+0yE4066aEaZB8addNANFNNomm03umQnGnPTQjTITjTrpoBopptE02m90yE4066aDTITjTrpoBopptFSbTeaZCcaddNBpkJxp100A0U02iabTeaZCcZddNBpkJxp100A0dSbRNNpu9MhOMuumg0uE4y66aAaOabRNNpu9MhOMuumg0yF4y66aAaSabUE02m70uE4y66aEaXCcZddNANJNNomm03elwvGXXTQjS4XjLrpIBpZptE02m60uF4y66SEaXC8ZddJANLNNoqTabrS4XjLrpINLheMuukgGmZRptZMMNNr8lJma4gGmlRuIkjPiJ4fP1GXpcLxl300GlwvGXXSQC74Dn7TXWpulioWXwl10kNDaL102q0vGWvMoGqh/hKec9BsL3rJ59DfCE856FYXvWQOsa+Dr5jzy8y980ehNr/J/q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" alt="Samsonix R588 dash camera — speaker, status LED and the key0 button">
         <span class="led" id="led"></span>
-        <button class="camkey" id="camkey" aria-label="Camera button: short press saves the video, hold 4–6 s for Wi-Fi, hold over 7 s for factory reset"
+        <button class="camkey" id="camkey" data-i18n-aria="cam.key" aria-label="Camera button: short press saves the video, hold 4–6 s for Wi-Fi, hold over 7 s for factory reset"
                 onmousedown="holdStart(event)" onmouseup="holdEnd()" onmouseleave="holdEnd(1)"
                 ontouchstart="holdStart(event)" ontouchend="holdEnd()" ondblclick="event.stopPropagation()"></button>
         <span class="holdbar" id="holdbar" data-on="0" data-act="wifi"><i id="holdfill"></i></span>
-        <span class="holdlab" id="holdlab" data-on="0" data-act="wifi"><b id="holdsec">0.0 s</b><span id="holdact">release → Wi-Fi</span></span>
+        <span class="holdlab" id="holdlab" data-on="0" data-act="wifi"><b id="holdsec">0.0 s</b><span id="holdact" data-i18n="hold.wifi">release → Wi-Fi</span></span>
       </div>
-      <div class="keyhint simple-only">Camera button: up to 3 s saves the current video · hold 4–6 s to switch Wi-Fi · hold over 7 s to reset · <b style="color:var(--accent)">double-click the camera = knock</b></div>
+      <div class="keyhint simple-only" data-i18n="keyhint">Camera button: up to 3 s saves the current video · hold 4–6 s to switch Wi-Fi · hold over 7 s to reset · <b style="color:var(--accent)">double-click the camera = knock</b></div>
       <div class="keyhint eng-only">press the button (acted on release) — under 3.5 s = protected clip, 3.5–7 s = Wi-Fi, over 7 s = factory reset · <b style="color:var(--accent)">double-click the camera = impact</b></div>
       <div class="status">
-        <div class="mline"><i id="mdot"></i><span id="mtext">OFF</span></div>
+        <div class="mline"><i id="mdot"></i><span id="mtext" data-i18n="mode.OFF">OFF</span></div>
         <div class="sline" id="recline">no power — connect B+</div>
         <div class="pills">
           <span class="pill" id="wifi" data-on="0"><svg><use href="#ic-wifi-off"/></svg><span id="wifitext">Wi-Fi off</span></span>
@@ -473,40 +486,40 @@ body.eng .simple-only{display:none!important}
         <div id="vbody"><div class="idle">No power — connect B+ to start</div></div>
       </div>
       <div class="scn">
-        <button type="button" onclick="scenario('bench')">Bench: B+ &amp; ACC</button>
-        <button type="button" onclick="scenario('engineoff')">Engine off</button>
-        <button type="button" onclick="scenario('engineon')">Engine on</button>
+        <button type="button" onclick="scenario('bench')" data-i18n="scn.bench">Power + ignition</button>
+        <button type="button" onclick="scenario('engineoff')" data-i18n="scn.off">Engine off</button>
+        <button type="button" onclick="scenario('engineon')" data-i18n="scn.on">Engine on</button>
       </div>
     </section>
 
     <section class="card">
-      <div class="chead"><svg class="i sm"><use href="#ic-sliders"/></svg><h2>Wiring</h2></div>
-      <div class="pdesc">B+ powers the camera, ACC is the ignition.</div>
+      <div class="chead"><svg class="i sm"><use href="#ic-sliders"/></svg><h2 data-i18n="wir.h">Wiring</h2></div>
+      <div class="pdesc" data-i18n="wir.desc">B+ powers the camera, ACC is the ignition.</div>
       <div class="ctrls">
         <div class="row">
           <span class="lab"><span class="ic"><svg class="i"><use href="#ic-batt"/></svg></span>
-            <span><b>B+</b><span>Constant power — the camera runs on this</span></span></span>
-          <button type="button" class="sw" id="swB" aria-pressed="false" aria-label="B plus constant power" onclick="toggle('bplus')"></button>
+            <span><b>B+</b><span data-i18n="bplus.d">Constant power — the camera runs on this</span></span></span>
+          <button type="button" class="sw" id="swB" aria-pressed="false" data-i18n-aria="bplus.aria" aria-label="B plus constant power" onclick="toggle('bplus')"></button>
         </div>
         <div class="row" id="rowA">
           <span class="lab"><span class="ic"><svg class="i"><use href="#ic-key"/></svg></span>
-            <span><b>ACC</b><span>Ignition — selects driving vs parking</span></span></span>
-          <button type="button" class="sw g" id="swA" aria-pressed="false" aria-label="ACC ignition" onclick="toggle('acc')"></button>
+            <span><b>ACC</b><span data-i18n="acc.d">Ignition — selects driving vs parking</span></span></span>
+          <button type="button" class="sw g" id="swA" aria-pressed="false" data-i18n-aria="acc.aria" aria-label="ACC ignition" onclick="toggle('acc')"></button>
         </div>
       </div>
 
       <div class="psu">
         <div class="psuhd">
-          <span><span class="simple-only">Car battery</span><span class="eng-only">Bench supply</span></span>
+          <span><span class="simple-only" data-i18n="psu.h">Car battery</span><span class="eng-only">Bench supply</span></span>
           <span class="cut" id="cutlab">cut-off 11.8 V</span>
         </div>
         <input type="range" id="vslide" min="9" max="15" step="0.1" value="12.6"
-               oninput="setVolt(this.value)" aria-label="Supply voltage">
-        <div class="vscale"><span>9 V</span><span>12 V</span><span>15 V</span></div>
+               oninput="setVolt(this.value)" data-i18n-aria="volt.aria" aria-label="Supply voltage">
+        <div class="vscale"><span class="ltr">9 <span data-i18n="u.V">V</span></span><span class="ltr">12 <span data-i18n="u.V">V</span></span><span class="ltr">15 <span data-i18n="u.V">V</span></span></div>
         <div class="meters">
-          <div class="meter"><b id="mV">12.60</b><span>V</span></div>
-          <div class="meter"><b id="mA">0</b><span>mA</span></div>
-          <div class="meter"><b id="mW">0.00</b><span>W</span></div>
+          <div class="meter"><b id="mV">12.60</b><span data-i18n="u.V">V</span></div>
+          <div class="meter"><b id="mA">0</b><span data-i18n="u.mA">mA</span></div>
+          <div class="meter"><b id="mW">0.00</b><span data-i18n="u.W">W</span></div>
         </div>
         <div class="psufoot" id="psufoot">Engine running — 12.6 V is a healthy alternator.</div>
       </div>
@@ -517,16 +530,17 @@ body.eng .simple-only{display:none!important}
     <section class="card">
     <div class="apphdr">
       <span class="applogo"><svg><use href="#ic-phone"/></svg></span>
-      <span class="appname">Samsonix Pro<span>phone app</span></span>
+      <span class="appname">Samsonix Pro<span data-i18n="app.sub">phone app</span></span>
       <span class="conn" id="conn" data-on="0"><i></i><span id="conntext">Camera offline</span></span>
     </div>
     <div class="phone">
       <div class="pbar">
-        <button class="pback" id="pback" hidden onclick="appBack()" aria-label="Back">&lsaquo;</button>
+        <button class="pback" id="pback" hidden onclick="appBack()" data-i18n-aria="app.back" aria-label="Back">&lsaquo;</button>
         <span class="ptitle" id="ptitle">settings</span>
       </div>
       <div class="paccent"></div>
       <div id="pbody"></div>
+      <div id="pdlg"></div>
     </div>
   </section>
 
@@ -534,8 +548,8 @@ body.eng .simple-only{display:none!important}
 
     <aside class="rcol">
     <section class="card">
-      <div class="chead"><svg class="i sm"><use href="#ic-video"/></svg><h2>Recorder</h2></div>
-      <div class="pdesc">What the camera writes to the SD card, and where. Recording is sped up <b>12×</b> so a one-minute segment closes in about five seconds; everything else runs in real time.</div>
+      <div class="chead"><svg class="i sm"><use href="#ic-video"/></svg><h2 data-i18n="rec.h">Recorder</h2></div>
+      <div class="pdesc" data-i18n="rec.desc">What the camera writes to the memory card, and where. Recording is sped up <b>12×</b> so a one-minute segment closes in about five seconds; everything else runs in real time.</div>
       <div class="now">
         <span class="badge none" id="rbadge">not recording</span>
         <div class="fn" id="rname">—</div>
@@ -543,33 +557,33 @@ body.eng .simple-only{display:none!important}
         <div class="bar"><i id="rbar"></i></div>
       </div>
       <div class="usage">
-        <div id="rusage" class="tnum">SD card 32 GB · 0 MB used · loop recording</div>
+        <div id="rusage" class="tnum" data-i18n="rec.usage0">Memory card 32 GB · 0 MB used · loop recording</div>
         <div class="bar"><i id="rcard"></i></div>
       </div>
-      <ul class="clips" id="clips"><li class="empty">No clips yet.</li></ul>
+      <ul class="clips" id="clips"><li class="empty" data-i18n="rec.empty">No clips yet.</li></ul>
     </section>
     <section class="card log">
-      <div class="chead"><svg class="i sm"><use href="#ic-list"/></svg><h2><span class="simple-only">What the camera does</span><span class="eng-only">Debug console</span></h2></div>
-      <div class="pdesc simple-only">Everything the camera does and says, newest first.</div>
+      <div class="chead"><svg class="i sm"><use href="#ic-list"/></svg><h2><span class="simple-only" data-i18n="log.h">What the camera does</span><span class="eng-only">Debug console</span></h2></div>
+      <div class="pdesc simple-only" data-i18n="log.desc">Everything the camera does and says, newest first.</div>
       <div class="pdesc eng-only">Every event in order — modes, sounds, Wi-Fi and files.</div>
-      <ul id="log"><li class="empty">Switch B+ on to power the camera.</li></ul>
+      <ul id="log"><li class="empty" data-i18n="log.empty">Switch the power (B+) on to start the camera.</li></ul>
     </section>
     </aside>
   </div>
     <section class="howto simple-only">
-      <h2>How it works</h2>
+      <h2 data-i18n="howto.h">How it works</h2>
       <ol>
-        <li><b>Power.</b> With the 12 V hardwire kit (B+ / ACC / GND) the camera has every mode below. On 5 V USB power it cannot see the ignition, so it only records while driving — no parking mode, no battery protection. The camera has no screen and no GPS; the app controls it.</li>
-        <li><b>Driving.</b> Ignition on: the camera plays its start-up chime, says "recording started" and records continuously to the <b>Normal</b> folder in one-minute clips (3 or 5 minutes in the app). When the card is full the oldest clips are replaced. R588 records 2560×1440; R688 records 4K (3840×2160, upscaled from 2560×1440); the rear camera 1920×1080. Date and time are stamped on the video as YYYY-MM-DD.</li>
-        <li><b>Ignition off.</b> The camera says "parking mode" (within a few seconds). If <b>Time lapse</b> is off, it switches off about 15 seconds later. If it is on, the camera says "parking recording on" and records a slow time-lapse to the <b>Parking</b> folder for the chosen time (15 minutes, 12 or 24 hours), then switches off.</li>
-        <li><b>Knocks and impacts.</b> While driving the camera beeps and the current video becomes a protected 30-second clip in the <b>Event</b> folder. During the time-lapse it beeps and records a 30-second event clip at full speed (it may start a second or two after the knock; there is no pre-recording), then the time-lapse continues at 4 frames per second. When the camera is off, <b>Parking Monitor</b> decides: on — a knock wakes the camera, it says "parking mode" and saves one 30-second event clip; off — knocks are ignored.</li>
-        <li><b>Ignition back on.</b> Within about 15 seconds of switching off: the camera says "Driving mode" and simply keeps recording. During the time-lapse: the camera says "Driving mode", restarts (about 10 seconds without recording), then plays the start-up tune and says "Recording started".</li>
-        <li><b>Battery protection.</b> During time-lapse recording the camera watches the car battery. If the battery stays below the cut-off (11.8 V, 12.0 V or 12.2 V in the app) for about 1–1.5 minutes, the camera saves the video and switches off silently; it then ignores knocks and comes back when you start the engine. If a knock clip is being recorded at that moment, switching off may be delayed by about a minute.</li>
-        <li><b>Wi-Fi and the app.</b> The camera's network is <b>R588_XXXXXX</b> (R688_XXXXXX on the R688), password <b>12345678</b>. Wi-Fi is on while driving, switches off about 2 seconds after the ignition goes off, and switches itself off after about 5 minutes with no phone connected. The Samsonix Pro app changes settings, shows live video, downloads clips and sets the camera's date and time from the phone every time it connects. In the settings, "mirror display" flips the rear camera image left–right and "vertical reflection" turns the front camera image upside down.</li>
-        <li><b>Memory card.</b> Three folders: <b>Normal</b> (driving), <b>Parking</b> (time-lapse) and <b>Event</b> (protected clips — loop recording does not overwrite them; formatting erases them). There is no need to format the card on a computer — the camera prepares it itself. A card in a different format may be formatted automatically when inserted, erasing everything on it, so do not insert a card with files you need. If the card is missing or faulty the camera says "memory card error" (תקלה בכרטיס הזיכרון).</li>
-        <li><b>The button.</b> The camera acts when you release it: up to 3 seconds saves the current video as a protected 30-second clip; hold 4–6 seconds to switch Wi-Fi on or off (the camera says "Wi-Fi on" / "Wi-Fi off"); hold more than 7 seconds to restore factory settings.</li>
+        <li data-i18n="howto.1"></li>
+        <li data-i18n="howto.2"></li>
+        <li data-i18n="howto.3"></li>
+        <li data-i18n="howto.4"></li>
+        <li data-i18n="howto.5"></li>
+        <li data-i18n="howto.6"></li>
+        <li data-i18n="howto.7"></li>
+        <li data-i18n="howto.8"></li>
+        <li data-i18n="howto.9"></li>
       </ol>
-      <div class="fwlabel">Firmware 1.0.1.9.20260930</div>
+      <div class="fwlabel" data-i18n="fwlabel">Firmware 1.0.1.9.20260930</div>
     </section>
     <div class="notes eng-only" id="notes">
 
@@ -722,20 +736,19 @@ const CFG={
   GSR_PARKING:{v:2,cgi:"GSR_PARKING",label:"Parking Monitor",opts:[[0,"off"],[1,"low"],[2,"Medium"],[3,"High"]],vs:17},
   PARK_TIMER:{v:0,cgi:"LOW_FPS_REC",label:"Time lapse recording duration",opts:[[0,"off"],[1,"15 Minutes"],[2,"12 Hours"],[3,"24 Hours"]],vs:33},
   LOW_FPS:{v:333,cgi:"LOW_FPS_REC",label:"Time Lapse Frame Rate",opts:[[1000,"1FPS"],[500,"2fps/s"],[333,"3fps/s"]],vs:30},
-  MIRROR:{v:1,cgi:"MIRROR",label:"mirror display from left to right",opts:[[0,"off"],[1,"On"]],vs:24,
+  MIRROR:{v:1,cgi:"MIRROR",label:"mirror display from left to right",toggle:true,opts:[[0,"off"],[1,"On"]],vs:24,
     hint:"Rear camera image (left–right)"},
-  FLIP:{v:0,cgi:"FLIP",label:"vertical reflection",opts:[[0,"off"],[1,"On"]],vs:20,
+  FLIP:{v:0,cgi:"FLIP",label:"vertical reflection",toggle:true,opts:[[0,"off"],[1,"On"]],vs:20,
     hint:"Front camera image (upside-down mounting)"},
   LOW_POWER:{v:0,cgi:"LOW_POWER_PROTECT",label:"Low voltage regulation",opts:[[0,"11.8V"],[1,"12.0V"],[2,"12.2V"]],vs:34},
+  /* unused by the camera (no GPS) but a row of the app; value-set 8, KMH=0 / MPH=1 (reports/08 §table) */
+  SPEED:{v:0,cgi:"SPEED_UNIT",label:"Speed unit",opts:[[0,"km/h"],[1,"mph"]],vs:8},
   VOLUME:{v:80,cgi:"VOLUME",label:"Volume",opts:[[0,"Mute"],[60,"low"],[80,"Medium"],[88,"High"]],vs:10}
 };
-const PARKTXT={0:"off",1:"15 min",2:"12 h",3:"24 h"};
 const PARKSEC={0:0,1:900,2:43200,3:86400};   /* the same durations in seconds */
-const MENU=["WIFI_NAME","WIFI_PW","RECCMD","MEDIAMODE","SPLIT","AUDIO","GSR_DRIVE","GSR_PARKING",
-            "PARK_TIMER","LOW_FPS","MIRROR","FLIP","LOW_POWER","VOLUME","FORMAT","RESET","FW"];
-const RATE={4:{f:10240,r:10240,fl:"1920×1080 · 30 fps",rl:"1920×1080 · 25 fps"},
-            6:{f:16240,r:10240,fl:"2560×1440 · 30 fps",rl:"1920×1080 · 25 fps"},
-            8:{f:24000,r:10240,fl:"3840×2160 · 25 fps",rl:"1920×1080 · 25 fps"}};
+const RATE={4:{f:10240,r:10240,fw:"1920×1080",ff:30,rw:"1920×1080",rf:25},
+            6:{f:16240,r:10240,fw:"2560×1440",ff:30,rw:"1920×1080",rf:25},
+            8:{f:24000,r:10240,fw:"3840×2160",ff:25,rw:"1920×1080",rf:25}};
 const cfg=k=>CFG[k].v;
 const tlfps=()=>S.tlFps4 ? 4 : Math.round(1000/cfg("LOW_FPS"));   /* .930: after an impact event the time-lapse restarts at 4 fps (mov r3,#4 @0x23ba4) */
 function mbps(){ const r=RATE[cfg("MEDIAMODE")]; return (r.f+r.r)/8/1024; }
@@ -759,22 +772,22 @@ const two=n=>String(n).padStart(2,"0");
    created inside the same second. Front and rear share the name; only the folder differs. */
 const stamp=ms=>{const d=new Date(ms);return `${d.getFullYear()}_${two(d.getMonth()+1)}_${two(d.getDate())}_`+
   `${two(d.getHours())}${two(d.getMinutes())}${two(d.getSeconds())}_00`};
-const fmtMB=m=>m>=1024?(m/1024).toFixed(2)+" GB":Math.round(m)+" MB";
+const fmtMB=m=>m>=1024?(m/1024).toFixed(2)+" "+t("u.GB"):Math.round(m)+" "+t("u.MB");
 const mmss=s=>Math.floor(s/60)+":"+two(Math.floor(s%60));
 const esc=s=>String(s).replace(/[&<>]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;"}[c]));
 const now=()=>new Date().toLocaleTimeString([],{hour12:false});
 
 function PROF(mode){
-  const r=RATE[cfg("MEDIAMODE")], audio=cfg("AUDIO")?" · audio on":" · audio off";
-  if(mode==="DRIVING") return {folder:"Normal",cls:"normal",seg:cfg("SPLIT"),rate:mbps(),
-    spec:`front ${r.fl} · ${(r.f/1000).toFixed(1)} Mbps<br>rear ${r.rl}${audio}`};
+  const r=RATE[cfg("MEDIAMODE")], audio=" · "+t(cfg("AUDIO")?"rec.audioOn":"rec.audioOff"), fps=t("u.fps");
+  const L=x=>`<span class="ltr">${x}</span>`;
+  const full=`${t("rec.front")} ${L(r.fw)} · ${L(r.ff+" "+fps)} · ${L((r.f/1000).toFixed(1)+" "+t("u.Mbps"))}<br>${t("rec.rear")} ${L(r.rw)} · ${L(r.rf+" "+fps)}${audio}`;
+  if(mode==="DRIVING") return {folder:"Normal",cls:"normal",seg:cfg("SPLIT"),rate:mbps(),spec:full};
   if(mode==="PARKING") return {folder:"Parking",cls:"parking",seg:cfg("SPLIT"),rate:mbps()*tlfps()/30,
-    spec:`front ${r.fl.split(' · ')[0]} · ${tlfps()} fps time-lapse<br>rear ${r.rl.split(' · ')[0]} · ${tlfps()} fps${audio}`};
+    spec:`${t("rec.front")} ${L(r.fw)} · ${L(tlfps()+" "+fps)} ${t("rec.tl")}<br>${t("rec.rear")} ${L(r.rw)} · ${L(tlfps()+" "+fps)}${audio}`};
   /* the impact clip length is its own parameter: record.[N].emr_time = 30 s, clamped to 60
      (cmp r6,#0x3c @0xc7a78, '...max is 60s'). Pre-roll is 0: pre_emr_duration is 0 and is only
      read when emr_type == 0, while this firmware ships emr_type = 1. */
-  return {folder:"Event",cls:"event",seg:30,rate:mbps(),
-    spec:`front ${r.fl} · ${(r.f/1000).toFixed(1)} Mbps<br>rear ${r.rl}${audio}`};
+  return {folder:"Event",cls:"event",seg:30,rate:mbps(),spec:full};
 }
 /* Two ways to read the page. Simple (default) is for the buyer who followed the link from the
    manual: plain words, short log lines, no internals. Engineering keeps everything — addresses,
@@ -792,9 +805,440 @@ const ENG=(function(){
   return v==="1";
 })();
 document.body.classList.add(ENG?"eng":"simple");
+/* ---- Language of the buyer view. ?lang= wins, then the saved choice, then the browser language;
+   the engineering view stays English. he / ar flip the page to right-to-left. ---- */
+const LANGS={en:"English",ru:"Русский",he:"עברית",ar:"العربية"};
+const LANG=(function(){
+  if(ENG) return "en";
+  let v=null;
+  try{
+    const q=new URLSearchParams(location.search||"");
+    const p=(q.get("lang")||"").toLowerCase();
+    if(LANGS[p]) v=p;
+    if(v) localStorage.setItem("r588sim.lang",v);
+    else v=localStorage.getItem("r588sim.lang");
+  }catch(e){}
+  if(!LANGS[v]){
+    const b=String((navigator.languages&&navigator.languages[0])||navigator.language||"en").toLowerCase().slice(0,2);
+    v=b==="iw"?"he":LANGS[b]?b:"en";
+  }
+  return v;
+})();
+const RTL=(LANG==="he"||LANG==="ar");
+document.documentElement.lang=LANG;
+document.documentElement.dir=RTL?"rtl":"ltr";
+function setLang(l){
+  if(!LANGS[l]) return;
+  try{ localStorage.setItem("r588sim.lang",l); }catch(e){}
+  const q=new URLSearchParams(location.search||""); q.set("lang",l); q.delete("v");
+  location.replace(location.pathname+"?"+q.toString());
+}
+/* Wording of the buyer view. Terms follow the user manual (time-lapse, Parking Monitor, loop recording,
+   Event folder, ignition, battery protection). Engineering wordings stay in the code, in English. */
+const I18N={
+en:{
+  title:"R588 Parking Logic",
+  intro:"Interactive demo of the Samsonix R588 / R688 dash cam logic. Use the controls to switch the ignition, shake the camera, change settings in the app and see what the camera does.",
+  lede:"What the camera does when you stop the engine. <b>Time lapse</b> decides whether the parked camera keeps recording or switches off; <b>Parking Monitor</b> decides whether a knock wakes it up.",
+  mc1t:"Time lapse off", mc1:"Ignition off &rarr; the camera says \"parking mode\" and switches off about 15 seconds later. With Parking Monitor on, a knock wakes it to save a 30-second event clip.",
+  mc2t:"Time lapse on", mc2:"The camera says \"parking mode\", then \"parking recording on\" and records a slow time-lapse for the chosen time. A knock saves a 30-second event clip at full speed, then the time-lapse continues.",
+  mc3t:"Ignition back on", mc3:"The camera says \"driving mode\", restarts in about 10 seconds and plays its start-up chime with \"recording started\". Normal recording continues.",
+  "chip.OFF":"OFF · no power", "chip.DRIVING":"DRIVING · ignition on", "chip.PARKING":"PARKING · time-lapse", "chip.SLEEP":"OFF · waiting for a knock",
+  "cam.h":"Camera", "cam.desc":"The camera as it behaves in the car. The button on the photo is live.",
+  "cam.shot":"Double-click the camera to simulate a knock (G-sensor impact)",
+  "cam.key":"Camera button: short press saves the video, hold 4–6 s for Wi-Fi, hold over 7 s for factory reset",
+  keyhint:"Camera button: up to 3 s saves the current video · hold 4–6 s to switch Wi-Fi · hold over 7 s to reset · <b style=\"color:var(--accent)\">double-click the camera = knock</b>",
+  "hold.wifi":"release → Wi-Fi", "hold.wifiOn":"release → Wi-Fi ON", "hold.wifiOff":"release → Wi-Fi OFF", "hold.reset":"release → FACTORY RESET", "hold.emr":"release → save video (protected clip)",
+  "u.s":"s", "u.V":"V", "u.mA":"mA", "u.W":"W", "u.GB":"GB", "u.MB":"MB", "u.Mbps":"Mbps", "u.fps":"fps",
+  "mode.OFF":"OFF", "mode.BOOT":"STARTING", "mode.DRIVING":"DRIVING", "mode.PARKING":"PARKING", "mode.SLEEP":"OFF", "mode.WAKE":"WOKEN", "mode.UPDATE":"UPDATE", "mode.REBOOT":"RESTART",
+  "rl.wake":"<b>Recording</b> an event clip (Event)", "rl.off":"No power — connect the power lead", "rl.boot":"Starting up — about {n} seconds",
+  "rl.appstop":"Recording <b>stopped from the app</b>", "rl.drive":"<b>Recording</b> — Normal", "rl.park":"<b>Time-lapse recording</b> — Parking · {d}",
+  "rl.sleep.on":"Off — a knock wakes the camera", "rl.sleep.off":"Off — knocks are ignored (Parking Monitor off)",
+  "rl.ota1":"receiving the update {p}%", "rl.ota2":"checking the update file", "rl.ota3":"<b>installing — do not remove power</b>", "rl.ota4":"restarting",
+  "wifi.off":"Wi-Fi off", "wifi.on":"Wi-Fi on · {ssid}", "mic.on":"Mic on", "mic.off":"Mic off",
+  "vi.off":"No power — connect the power lead to start", "vi.boot":"Starting up…", "vi.sleep.on":"Camera off — a knock wakes it", "vi.sleep.off":"Camera off — Parking Monitor is off, knocks are ignored", "vi.idle":"Quiet — waiting for the next event",
+  "scn.bench":"Power + ignition", "scn.off":"Engine off", "scn.on":"Engine on",
+  "wir.h":"Wiring", "wir.desc":"B+ powers the camera, ACC is the ignition.",
+  "bplus.d":"Constant power — the camera runs on this", "acc.d":"Ignition — selects driving vs parking", "bplus.aria":"B plus constant power", "acc.aria":"ACC ignition",
+  "psu.h":"Car battery", "psu.cut":"cut-off {v} V", "volt.aria":"Supply voltage",
+  "ps.cut":"<b>Battery protection:</b> the camera switched off to keep the car battery healthy. It comes back when you start the engine or reconnect the power.",
+  "ps.armed":"<b>Battery protection is on</b> (time-lapse). The camera switches off if the battery stays at or below <b>{v} V</b> for about a minute{avg}.",
+  "ps.avg":" — current average {a} V",
+  "ps.idle":"Battery protection works during time-lapse recording: the camera switches off if the battery stays below <b>{v} V</b> for about a minute. {s}",
+  "ps.below":"The battery is already below the cut-off.", "ps.drain":"Engine off, battery draining.", "ps.healthy":"Engine off, battery healthy.", "ps.charging":"Engine running — the battery is charging.",
+  "app.sub":"phone app", "app.back":"Back", "conn.off":"Camera offline", "conn.on":"Connected · {ssid}", "conn.offwifi":"Camera offline — Wi-Fi off",
+  "app.nc.t":"Camera not connected", "app.nc.d":"The camera's Wi-Fi is off, so the app cannot reach it.<br>Press the button on the camera to switch Wi-Fi back on — the app reconnects by itself.", "app.nc.wait":"waiting for {ssid}",
+  "app.rec":"Recording", "app.rec.run":"running · stop", "app.rec.stop":"stopped · start",
+  "ota.t":"Firmware update", "ota.s1":"Sending the update to the camera", "ota.s2":"Checking the update", "ota.s3":"Installing the firmware", "ota.s4":"Camera restarting", "ota.warn":"Do not remove power", "ota.pkg":"{v} &rarr; new firmware (5.9 MB)", "ota.step":"step {n} of 4",
+  "rec.h":"Recorder", "rec.desc":"What the camera writes to the memory card, and where. Recording is sped up <b>12×</b> so a one-minute segment closes in about five seconds; everything else runs in real time.",
+  "rec.none":"not recording", "rec.armed":"waiting for a knock — not recording", "rec.prot":"protected", "rec.spec.off":"Connect power to start recording",
+  "rec.front":"front", "rec.rear":"rear", "rec.audioOn":"audio on", "rec.audioOff":"audio off", "rec.tl":"time-lapse", "rec.seg":"segment", "rec.clip":"event clip",
+  "rec.sleep.on":"Low power. A knock wakes the camera and writes one clip.", "rec.sleep.off":"Low power. <b style='color:var(--accent)'>Parking Monitor is off</b> — knocks are ignored.",
+  "rec.usage0":"Memory card 32 GB · 0 MB used · loop recording", "rec.usage":"Memory card 32 GB · {used} used · clips: {n} · loop recording", "rec.empty":"No clips yet.",
+  "log.h":"What the camera does", "log.desc":"Everything the camera does and says, newest first.", "log.empty":"Switch the power (B+) on to start the camera.",
+  "howto.h":"How it works",
+  "howto.1":"<b>Power.</b> With the 12 V hardwire kit (B+ / ACC / GND) the camera has every mode below. On 5 V USB power it cannot see the ignition, so it only records while driving — no parking mode, no battery protection. The camera has no screen and no GPS; the app controls it.",
+  "howto.2":"<b>Driving.</b> Ignition on: the camera plays its start-up chime, says \"recording started\" and records continuously to the <b>Normal</b> folder in one-minute clips (3 or 5 minutes in the app). When the card is full the oldest clips are replaced. R588 records 2560×1440; R688 records 4K (3840×2160, upscaled from 2560×1440); the rear camera 1920×1080. Date and time are stamped on the video as YYYY-MM-DD.",
+  "howto.3":"<b>Ignition off.</b> The camera says \"parking mode\" (within a few seconds). If <b>Time lapse</b> is off, it switches off about 15 seconds later. If it is on, the camera says \"parking recording on\" and records a slow time-lapse to the <b>Parking</b> folder for the chosen time (15 minutes, 12 or 24 hours), then switches off.",
+  "howto.4":"<b>Knocks and impacts.</b> While driving the camera beeps and the current video becomes a protected 30-second clip in the <b>Event</b> folder. During the time-lapse it beeps and records a 30-second event clip at full speed (it may start a second or two after the knock; there is no pre-recording), then the time-lapse continues at 4 frames per second. When the camera is off, <b>Parking Monitor</b> decides: on — a knock wakes the camera, it says \"parking mode\" and saves one 30-second event clip; off — knocks are ignored.",
+  "howto.5":"<b>Ignition back on.</b> Within about 15 seconds of switching off: the camera says \"driving mode\" and simply keeps recording. During the time-lapse: the camera says \"driving mode\", restarts (about 10 seconds without recording), then plays the start-up tune and says \"recording started\".",
+  "howto.6":"<b>Battery protection.</b> During time-lapse recording the camera watches the car battery. If the battery stays below the cut-off (11.8 V, 12.0 V or 12.2 V in the app) for about 1–1.5 minutes, the camera saves the video and switches off silently; it then ignores knocks and comes back when you start the engine. If a knock clip is being recorded at that moment, switching off may be delayed by about a minute.",
+  "howto.7":"<b>Wi-Fi and the app.</b> The camera's network is <b>R588_XXXXXX</b> (R688_XXXXXX on the R688), password <b>12345678</b>. Wi-Fi is on while driving, switches off about 2 seconds after the ignition goes off, and switches itself off after about 5 minutes with no phone connected. The Samsonix Pro app changes settings, shows live video, downloads clips and sets the camera's date and time from the phone every time it connects. In the settings, \"mirror display\" flips the rear camera image left–right and \"vertical reflection\" turns the front camera image upside down.",
+  "howto.8":"<b>Memory card.</b> Three folders: <b>Normal</b> (driving), <b>Parking</b> (time-lapse) and <b>Event</b> (protected clips — loop recording does not overwrite them; formatting erases them). There is no need to format the card on a computer — the camera prepares it itself. A card in a different format may be formatted automatically when inserted, erasing everything on it, so do not insert a card with files you need. If the card is missing or faulty the camera says \"memory card error\" (תקלה בכרטיס הזיכרון).",
+  "howto.9":"<b>The button.</b> The camera acts when you release it: up to 3 seconds saves the current video as a protected 30-second clip; hold 4–6 seconds to switch Wi-Fi on or off (the camera says \"Wi-Fi on\" / \"Wi-Fi off\"); hold more than 7 seconds to restore factory settings.",
+  fwlabel:"Firmware 1.0.1.9.20260930",
+  "mt.OFF":"No power", "mt.BOOT":"Camera starting up", "mt.DRIVING":"Driving — recording to Normal", "mt.PARKING":"Parking — time-lapse recording to Parking", "mt.SLEEP":"Camera off (standby)",
+  "pt.0":"off", "pt.1":"15 min", "pt.2":"12 h", "pt.3":"24 h",
+  "v.parking":"parking mode", "v.driving":"driving mode", "v.lapse":"parking recording on", "v.beep":"beep", "v.start":"start-up chime",
+  "v.stopRec":"recording stopped", "v.wifiOn":"Wi-Fi on", "v.wifiOff":"Wi-Fi off", "v.reset":"factory reset", "v.emr":"emergency recording",
+  "v.ota":"firmware update starting", "v.audioOn":"microphone on", "v.audioOff":"microphone off", "v.startRec":"recording started", "v.powerOff":"powering down",
+  "L.says":"Camera says \"{m}\"", "L.beep":"Camera beeps", "L.chime":"Camera plays the start-up chime", "L.muted":" (muted in the app)",
+  "L.full":"Memory card full — the oldest video is replaced",
+  "L.ota1":"Update: the new firmware has been sent to the camera", "L.ota2":"Update: checking the file", "L.ota3":"Update: file is good", "L.ota4":"Update: installing — do not unplug the camera", "L.ota5":"Update installed — the camera restarts", "L.ota6":"Camera is back on",
+  "L.evtTl":"Event clip saved to Event — back to time-lapse recording", "L.evtAcc":"Event clip saved — the ignition is on, the camera restarts", "L.evtSleep":"Event clip saved — the camera switches off again and keeps waiting for knocks", "L.evtNorm":"Event clip saved to Event — normal recording continues",
+  "L.tlEnd":"Time-lapse time is up — the camera switches off",
+  "L.lvp":"Battery low — the camera switches off to protect the car battery (video saved, Wi-Fi off)",
+  "L.tlStart":"Time-lapse parking recording starts (Parking folder)",
+  "L.poff":"Camera switches off — {why}", "L.poff.tl":"the time-lapse time is up", "L.poff.15":"about 15 seconds after the ignition went off (time-lapse is off)",
+  "L.down.on":"Camera is off — a knock will wake it (Parking Monitor on)", "L.down.off":"Camera is off — knocks are ignored (Parking Monitor off)",
+  "L.exitTl":"Ignition on during time-lapse — the camera says \"driving mode\" and restarts",
+  "L.reboot":"Camera restarting — about {n} seconds without recording",
+  "L.woke":"Knock woke the camera — recording a 30-second event clip to Event", "L.on":"Camera is on — recording to Normal",
+  "L.wifiOn":"Wi-Fi on — the app can connect", "L.wifiOff":"Wi-Fi off — the app disconnects",
+  "L.bOn":"Power connected", "L.bOff":"Power disconnected", "L.aOn":"Ignition on", "L.aOff":"Ignition off", "L.noPower":"Nothing happens — the camera has no power",
+  "L.impOff":"Knock — the camera is off", "L.impBoot":"Knock — the camera is still starting up", "L.imp":"Knock detected", "L.impBusy":"Already recording an event clip",
+  "L.impTl":"30-second event clip recording to Event — time-lapse continues afterwards", "L.impTlBeep":"Beep only — no clip during time-lapse", "L.impTlIgn":"Ignored during time-lapse",
+  "L.impPmOff":"Ignored — Parking Monitor is off", "L.impGsOff":"Ignored — the G-sensor is off", "L.impStopped":"Ignored — recording is stopped", "L.impSpeak":"Missed — the camera was speaking at that moment",
+  "L.impDrive":"Event clip saved to Event — the current video is protected",
+  "L.impFull":"Recording the knock at full speed", "L.impWoke":"Camera woke up — recording an event clip", "L.impProt":"Protected event clip recording",
+  "L.btnOff":"Button pressed — the camera has no power", "L.held":"Button held {s} s", "L.reset":"Factory reset", "L.shortTl":"Short press ignored during time-lapse", "L.already":"Already saving a clip",
+  "L.saving":"Saving the current video as a protected clip", "L.protRec":"Protected clip recording to Event",
+  "L.bench":"Power and ignition connected",
+  "L.appStop":"App: stop recording", "L.appStart":"App: start recording", "L.nothingStop":"Nothing to stop — the camera is not recording", "L.nothingStart":"Nothing to start — the camera is not recording",
+  "L.notdemo":"{l} — not in this demo", "L.appset":"App setting: {l} → {v}", "L.on1":"On", "L.off1":"off",
+  "L.fmt":"Memory card formatted — all videos erased",
+  "L.otaNoPower":"The camera has no power", "L.otaNoWifi":"Wi-Fi is off — the app cannot reach the camera", "L.otaStart":"Firmware update starting",
+  "L.frStart":"Factory reset — recording stops, Wi-Fi off", "L.frDone":"Settings back to factory defaults", "L.frWifi":"Wi-Fi name and password back to R588_… / 12345678", "L.frReboot":"Camera restarts"
+},
+ru:{
+  title:"R588 — логика парковки",
+  intro:"Интерактивная демонстрация логики видеорегистратора Samsonix R588 / R688. Включайте и выключайте зажигание, «стучите» по камере, меняйте настройки в приложении — и смотрите, что делает камера.",
+  lede:"Что делает камера, когда вы глушите двигатель. <b>Таймлапс</b> решает, продолжает ли камера запись на стоянке или выключается; <b>Мониторинг парковки</b> решает, разбудит ли её удар.",
+  mc1t:"Таймлапс выключен", mc1:"Зажигание выключено &rarr; камера говорит «режим парковки» и примерно через 15 секунд выключается. Если включён Мониторинг парковки, удар разбудит её, и она сохранит 30-секундный клип события.",
+  mc2t:"Таймлапс включён", mc2:"Камера говорит «режим парковки», затем «запись на парковке включена» и пишет замедленный таймлапс выбранное время. Удар сохраняет 30-секундный клип события на полной скорости, затем таймлапс продолжается.",
+  mc3t:"Зажигание снова включено", mc3:"Камера говорит «режим движения», перезагружается примерно за 10 секунд и играет мелодию запуска с «запись началась». Обычная запись продолжается.",
+  "chip.OFF":"ВЫКЛ · нет питания", "chip.DRIVING":"ДВИЖЕНИЕ · зажигание вкл", "chip.PARKING":"ПАРКОВКА · таймлапс", "chip.SLEEP":"ВЫКЛ · ждёт удара",
+  "cam.h":"Камера", "cam.desc":"Камера ведёт себя так же, как в автомобиле. Кнопка на фото работает.",
+  "cam.shot":"Двойной щелчок по камере — имитация удара (G-сенсор)",
+  "cam.key":"Кнопка камеры: короткое нажатие сохраняет видео, удержание 4–6 с — Wi-Fi, дольше 7 с — сброс к заводским настройкам",
+  keyhint:"Кнопка камеры: до 3 с — сохранить текущее видео · 4–6 с — включить/выключить Wi-Fi · дольше 7 с — сброс · <b style=\"color:var(--accent)\">двойной щелчок по камере = удар</b>",
+  "hold.wifi":"отпустите → Wi-Fi", "hold.wifiOn":"отпустите → Wi-Fi ВКЛ", "hold.wifiOff":"отпустите → Wi-Fi ВЫКЛ", "hold.reset":"отпустите → СБРОС К ЗАВОДСКИМ", "hold.emr":"отпустите → сохранить видео (защищённый клип)",
+  "u.s":"с", "u.V":"В", "u.mA":"мА", "u.W":"Вт", "u.GB":"ГБ", "u.MB":"МБ", "u.Mbps":"Мбит/с", "u.fps":"к/с",
+  "mode.OFF":"ВЫКЛ", "mode.BOOT":"ЗАПУСК", "mode.DRIVING":"ДВИЖЕНИЕ", "mode.PARKING":"ПАРКОВКА", "mode.SLEEP":"ВЫКЛ", "mode.WAKE":"ПРОБУЖДЕНИЕ", "mode.UPDATE":"ОБНОВЛЕНИЕ", "mode.REBOOT":"ПЕРЕЗАГРУЗКА",
+  "rl.wake":"<b>Запись</b> клипа события (Event)", "rl.off":"Нет питания — подключите провод питания", "rl.boot":"Запуск — около {n} секунд",
+  "rl.appstop":"Запись <b>остановлена из приложения</b>", "rl.drive":"<b>Запись</b> — Normal", "rl.park":"<b>Таймлапс-запись</b> — Parking · {d}",
+  "rl.sleep.on":"Выключена — удар разбудит камеру", "rl.sleep.off":"Выключена — удары игнорируются (Мониторинг парковки выкл)",
+  "rl.ota1":"получение обновления {p}%", "rl.ota2":"проверка файла обновления", "rl.ota3":"<b>установка — не отключайте питание</b>", "rl.ota4":"перезагрузка",
+  "wifi.off":"Wi-Fi выкл", "wifi.on":"Wi-Fi вкл · {ssid}", "mic.on":"Микрофон вкл", "mic.off":"Микрофон выкл",
+  "vi.off":"Нет питания — подключите провод питания", "vi.boot":"Запуск…", "vi.sleep.on":"Камера выключена — удар разбудит её", "vi.sleep.off":"Камера выключена — Мониторинг парковки выкл, удары игнорируются", "vi.idle":"Тишина — ждём следующего события",
+  "scn.bench":"Питание + зажигание", "scn.off":"Двигатель выкл", "scn.on":"Двигатель вкл",
+  "wir.h":"Подключение", "wir.desc":"B+ питает камеру, ACC — зажигание.",
+  "bplus.d":"Постоянное питание — от него работает камера", "acc.d":"Зажигание — выбирает движение или парковку", "bplus.aria":"B+ постоянное питание", "acc.aria":"ACC зажигание",
+  "psu.h":"Аккумулятор автомобиля", "psu.cut":"порог {v} В", "volt.aria":"Напряжение питания",
+  "ps.cut":"<b>Защита аккумулятора:</b> камера выключилась, чтобы сберечь аккумулятор автомобиля. Она включится при запуске двигателя или повторном подключении питания.",
+  "ps.armed":"<b>Защита аккумулятора включена</b> (таймлапс). Камера выключится, если напряжение продержится на уровне <b>{v} В</b> или ниже около минуты{avg}.",
+  "ps.avg":" — текущее среднее {a} В",
+  "ps.idle":"Защита аккумулятора работает во время таймлапс-записи: камера выключится, если напряжение продержится ниже <b>{v} В</b> около минуты. {s}",
+  "ps.below":"Напряжение уже ниже порога.", "ps.drain":"Двигатель выключен, аккумулятор разряжается.", "ps.healthy":"Двигатель выключен, аккумулятор в норме.", "ps.charging":"Двигатель работает — аккумулятор заряжается.",
+  "app.sub":"приложение", "app.back":"Назад", "conn.off":"Камера не в сети", "conn.on":"Подключено · {ssid}", "conn.offwifi":"Камера не в сети — Wi-Fi выкл",
+  "app.nc.t":"Камера не подключена", "app.nc.d":"Wi-Fi камеры выключен, приложение не может к ней подключиться.<br>Нажмите кнопку на камере, чтобы снова включить Wi-Fi — приложение подключится само.", "app.nc.wait":"ожидание {ssid}",
+  "app.rec":"Запись", "app.rec.run":"идёт · стоп", "app.rec.stop":"остановлена · старт",
+  "ota.t":"Обновление прошивки", "ota.s1":"Отправка обновления на камеру", "ota.s2":"Проверка обновления", "ota.s3":"Установка прошивки", "ota.s4":"Камера перезагружается", "ota.warn":"Не отключайте питание", "ota.pkg":"{v} &rarr; новая прошивка (5.9 МБ)", "ota.step":"шаг {n} из 4",
+  "rec.h":"Запись", "rec.desc":"Что камера пишет на карту памяти и куда. Запись ускорена в <b>12 раз</b>: минутный сегмент закрывается примерно за пять секунд; всё остальное идёт в реальном времени.",
+  "rec.none":"не записывает", "rec.armed":"ждёт удара — не записывает", "rec.prot":"защищён", "rec.spec.off":"Подключите питание, чтобы начать запись",
+  "rec.front":"фронт", "rec.rear":"тыл", "rec.audioOn":"звук вкл", "rec.audioOff":"звук выкл", "rec.tl":"таймлапс", "rec.seg":"сегмент", "rec.clip":"клип события",
+  "rec.sleep.on":"Малое потребление. Удар разбудит камеру, и она запишет один клип.", "rec.sleep.off":"Малое потребление. <b style='color:var(--accent)'>Мониторинг парковки выключен</b> — удары игнорируются.",
+  "rec.usage0":"Карта памяти 32 ГБ · занято 0 МБ · циклическая запись", "rec.usage":"Карта памяти 32 ГБ · занято {used} · клипов: {n} · циклическая запись", "rec.empty":"Клипов пока нет.",
+  "log.h":"Что делает камера", "log.desc":"Всё, что камера делает и говорит, новое сверху.", "log.empty":"Включите питание (B+), чтобы запустить камеру.",
+  "howto.h":"Как это работает",
+  "howto.1":"<b>Питание.</b> С комплектом постоянного подключения 12 В (B+ / ACC / GND) камере доступны все режимы ниже. От USB 5 В камера не видит зажигание, поэтому пишет только в движении — без режима парковки и без защиты аккумулятора. У камеры нет экрана и GPS; управление — через приложение.",
+  "howto.2":"<b>Движение.</b> Зажигание включено: камера играет мелодию запуска, говорит «запись началась» и непрерывно пишет в папку <b>Normal</b> клипами по одной минуте (3 или 5 минут — в приложении). Когда карта заполнена, самые старые клипы заменяются. R588 пишет 2560×1440; R688 — 4K (3840×2160, увеличение с 2560×1440); тыловая камера — 1920×1080. Дата и время впечатываются в видео в формате ГГГГ-ММ-ДД.",
+  "howto.3":"<b>Зажигание выключено.</b> Камера говорит «режим парковки» (через несколько секунд). Если <b>таймлапс</b> выключен, примерно через 15 секунд она выключается. Если включён, камера говорит «запись на парковке включена» и пишет замедленный таймлапс в папку <b>Parking</b> выбранное время (15 минут, 12 или 24 часа), затем выключается.",
+  "howto.4":"<b>Удары.</b> В движении камера подаёт сигнал, и текущее видео становится защищённым 30-секундным клипом в папке <b>Event</b>. Во время таймлапса она подаёт сигнал и пишет 30-секундный клип события на полной скорости (он может начаться через секунду-две после удара; предзаписи нет), затем таймлапс продолжается с частотой 4 кадра в секунду. Когда камера выключена, решает <b>Мониторинг парковки</b>: включён — удар пробуждает камеру, она говорит «режим парковки» и сохраняет один 30-секундный клип события; выключен — удары игнорируются.",
+  "howto.5":"<b>Зажигание снова включено.</b> В первые ~15 секунд после выключения: камера говорит «режим движения» и просто продолжает запись. Во время таймлапса: камера говорит «режим движения», перезагружается (около 10 секунд без записи), затем играет мелодию запуска и говорит «запись началась».",
+  "howto.6":"<b>Защита аккумулятора.</b> Во время таймлапс-записи камера следит за аккумулятором автомобиля. Если напряжение держится ниже порога (11.8, 12.0 или 12.2 В — в приложении) около 1–1.5 минут, камера сохраняет видео и молча выключается; затем она игнорирует удары и включается при запуске двигателя. Если в этот момент пишется клип удара, выключение может задержаться примерно на минуту.",
+  "howto.7":"<b>Wi-Fi и приложение.</b> Сеть камеры — <b>R588_XXXXXX</b> (R688_XXXXXX у R688), пароль <b>12345678</b>. Wi-Fi включён в движении, выключается примерно через 2 секунды после выключения зажигания и сам отключается через ~5 минут без подключённого телефона. Приложение Samsonix Pro меняет настройки, показывает живое видео, скачивает клипы и при каждом подключении устанавливает дату и время камеры с телефона. В настройках «отразить по вертикали» переворачивает изображение фронтальной камеры.",
+  "howto.8":"<b>Карта памяти.</b> Три папки: <b>Normal</b> (движение), <b>Parking</b> (таймлапс) и <b>Event</b> (защищённые клипы — циклическая запись их не перезаписывает; форматирование стирает). Форматировать карту на компьютере не нужно — камера подготовит её сама. Карта в другом формате может быть отформатирована автоматически при установке, со стиранием всего содержимого, поэтому не вставляйте карту с нужными вам файлами. Если карты нет или она неисправна, камера говорит «ошибка карты памяти» (תקלה בכרטיס הזיכרון).",
+  "howto.9":"<b>Кнопка.</b> Камера действует при отпускании кнопки: до 3 секунд — сохранить текущее видео как защищённый 30-секундный клип; 4–6 секунд — включить или выключить Wi-Fi (камера говорит «Wi-Fi включён» / «Wi-Fi выключен»); дольше 7 секунд — сброс к заводским настройкам.",
+  fwlabel:"Прошивка 1.0.1.9.20260930",
+  "mt.OFF":"Нет питания", "mt.BOOT":"Камера запускается", "mt.DRIVING":"Движение — запись в Normal", "mt.PARKING":"Парковка — таймлапс-запись в Parking", "mt.SLEEP":"Камера выключена (ожидание)",
+  "pt.0":"выкл", "pt.1":"15 мин", "pt.2":"12 ч", "pt.3":"24 ч",
+  "v.parking":"режим парковки", "v.driving":"режим движения", "v.lapse":"запись на парковке включена", "v.beep":"сигнал", "v.start":"мелодия включения",
+  "v.stopRec":"запись остановлена", "v.wifiOn":"Wi-Fi включён", "v.wifiOff":"Wi-Fi выключен", "v.reset":"сброс к заводским настройкам", "v.emr":"экстренная запись",
+  "v.ota":"начало обновления прошивки", "v.audioOn":"микрофон включён", "v.audioOff":"микрофон выключен", "v.startRec":"запись началась", "v.powerOff":"выключение",
+  "L.says":"Камера говорит «{m}»", "L.beep":"Камера подаёт сигнал", "L.chime":"Камера играет мелодию включения", "L.muted":" (звук отключён в приложении)",
+  "L.full":"Карта памяти заполнена — самое старое видео заменяется",
+  "L.ota1":"Обновление: новая прошивка отправлена на камеру", "L.ota2":"Обновление: проверка файла", "L.ota3":"Обновление: файл в порядке", "L.ota4":"Обновление: установка — не отключайте камеру", "L.ota5":"Обновление установлено — камера перезагружается", "L.ota6":"Камера снова включена",
+  "L.evtTl":"Клип события сохранён в Event — возврат к таймлапс-записи", "L.evtAcc":"Клип события сохранён — зажигание включено, камера перезагружается", "L.evtSleep":"Клип события сохранён — камера снова выключается и продолжает ждать удара", "L.evtNorm":"Клип события сохранён в Event — обычная запись продолжается",
+  "L.tlEnd":"Время таймлапса истекло — камера выключается",
+  "L.lvp":"Низкое напряжение — камера выключается, чтобы защитить аккумулятор (видео сохранено, Wi-Fi выкл)",
+  "L.tlStart":"Начинается таймлапс-запись на парковке (папка Parking)",
+  "L.poff":"Камера выключается — {why}", "L.poff.tl":"время таймлапса истекло", "L.poff.15":"примерно через 15 секунд после выключения зажигания (таймлапс выключен)",
+  "L.down.on":"Камера выключена — удар разбудит её (Мониторинг парковки вкл)", "L.down.off":"Камера выключена — удары игнорируются (Мониторинг парковки выкл)",
+  "L.exitTl":"Зажигание включено во время таймлапса — камера говорит «режим движения» и перезагружается",
+  "L.reboot":"Камера перезагружается — около {n} секунд без записи",
+  "L.woke":"Удар разбудил камеру — запись 30-секундного клипа события в Event", "L.on":"Камера включена — запись в Normal",
+  "L.wifiOn":"Wi-Fi включён — приложение может подключиться", "L.wifiOff":"Wi-Fi выключен — приложение отключается",
+  "L.bOn":"Питание подключено", "L.bOff":"Питание отключено", "L.aOn":"Зажигание включено", "L.aOff":"Зажигание выключено", "L.noPower":"Ничего не происходит — у камеры нет питания",
+  "L.impOff":"Удар — камера выключена", "L.impBoot":"Удар — камера ещё запускается", "L.imp":"Зафиксирован удар", "L.impBusy":"Клип события уже записывается",
+  "L.impTl":"Запись 30-секундного клипа события в Event — затем таймлапс продолжится", "L.impTlBeep":"Только сигнал — во время таймлапса клип не пишется", "L.impTlIgn":"Игнорируется во время таймлапса",
+  "L.impPmOff":"Игнорируется — Мониторинг парковки выключен", "L.impGsOff":"Игнорируется — G-сенсор выключен", "L.impStopped":"Игнорируется — запись остановлена", "L.impSpeak":"Пропущен — камера в этот момент говорила",
+  "L.impDrive":"Клип события сохранён в Event — текущее видео защищено",
+  "L.impFull":"Запись удара на полной скорости", "L.impWoke":"Камера проснулась — запись клипа события", "L.impProt":"Запись защищённого клипа события",
+  "L.btnOff":"Кнопка нажата — у камеры нет питания", "L.held":"Кнопка удерживалась {s} с", "L.reset":"Сброс к заводским настройкам", "L.shortTl":"Короткое нажатие во время таймлапса игнорируется", "L.already":"Клип уже сохраняется",
+  "L.saving":"Сохранение текущего видео как защищённого клипа", "L.protRec":"Запись защищённого клипа в Event",
+  "L.bench":"Питание и зажигание подключены",
+  "L.appStop":"Приложение: остановить запись", "L.appStart":"Приложение: начать запись", "L.nothingStop":"Нечего останавливать — камера не записывает", "L.nothingStart":"Нечего запускать — камера не записывает",
+  "L.notdemo":"{l} — в этой демонстрации не показывается", "L.appset":"Настройка в приложении: {l} → {v}", "L.on1":"Вкл", "L.off1":"Выкл",
+  "L.fmt":"Карта памяти отформатирована — все видео стёрты",
+  "L.otaNoPower":"У камеры нет питания", "L.otaNoWifi":"Wi-Fi выключен — приложение не может подключиться к камере", "L.otaStart":"Начинается обновление прошивки",
+  "L.frStart":"Сброс к заводским настройкам — запись останавливается, Wi-Fi выкл", "L.frDone":"Настройки возвращены к заводским", "L.frWifi":"Имя и пароль Wi-Fi снова R588_… / 12345678", "L.frReboot":"Камера перезагружается"
+},
+he:{
+  title:"R588 — לוגיקת החניה",
+  intro:"הדגמה אינטראקטיבית של לוגיקת מצלמת הרכב Samsonix R588 / R688. הפעילו וכבו את ההצתה, «הכו» במצלמה, שנו הגדרות באפליקציה — וראו מה המצלמה עושה.",
+  lede:"מה המצלמה עושה כשמכבים את המנוע. <b>צילום מואץ</b> קובע אם המצלמה ממשיכה להקליט בחניה או נכבית; <b>מוניטור חניה</b> קובע אם זעזוע מעיר אותה.",
+  mc1t:"צילום מואץ כבוי", mc1:"כיבוי ההצתה &larr; המצלמה אומרת «מצב חניה» ונכבית כ-15 שניות לאחר מכן. כאשר מוניטור חניה פועל, זעזוע מעיר אותה לשמירת קליפ אירוע של 30 שניות.",
+  mc2t:"צילום מואץ פועל", mc2:"המצלמה אומרת «מצב חניה», אחר כך «צילום בחניה הופעל» ומקליטה צילום מואץ איטי למשך הזמן שנבחר. זעזוע שומר קליפ אירוע של 30 שניות במהירות מלאה, ואז הצילום המואץ ממשיך.",
+  mc3t:"הפעלת ההצתה מחדש", mc3:"המצלמה אומרת «מצב נסיעה», מתאתחלת תוך כ-10 שניות ומשמיעה את מנגינת ההפעלה עם «ההקלטה החלה». ההקלטה הרגילה ממשיכה.",
+  "chip.OFF":"כבויה · אין חשמל", "chip.DRIVING":"נסיעה · הצתה פועלת", "chip.PARKING":"חניה · צילום מואץ", "chip.SLEEP":"כבויה · מחכה לזעזוע",
+  "cam.h":"המצלמה", "cam.desc":"המצלמה מתנהגת כמו ברכב. הכפתור שבתמונה פעיל.",
+  "cam.shot":"לחיצה כפולה על המצלמה — הדמיית זעזוע (חיישן G)",
+  "cam.key":"כפתור המצלמה: לחיצה קצרה שומרת את הסרטון, החזקה של 4–6 שניות — Wi-Fi, מעל 7 שניות — איפוס להגדרות יצרן",
+  keyhint:"כפתור המצלמה: עד 3 שניות — שמירת הסרטון הנוכחי · 4–6 שניות — הפעלה/כיבוי Wi-Fi · מעל 7 שניות — איפוס · <b style=\"color:var(--accent)\">לחיצה כפולה על המצלמה = זעזוע</b>",
+  "hold.wifi":"שחררו → Wi-Fi", "hold.wifiOn":"שחררו → הפעלת Wi-Fi", "hold.wifiOff":"שחררו → כיבוי Wi-Fi", "hold.reset":"שחררו → איפוס להגדרות יצרן", "hold.emr":"שחררו → שמירת הסרטון (קליפ מוגן)",
+  "u.s":"שנ׳", "u.V":"V", "u.mA":"mA", "u.W":"W", "u.GB":"GB", "u.MB":"MB", "u.Mbps":"Mbps", "u.fps":"fps",
+  "mode.OFF":"כבויה", "mode.BOOT":"מתחילה", "mode.DRIVING":"נסיעה", "mode.PARKING":"חניה", "mode.SLEEP":"כבויה", "mode.WAKE":"התעוררות", "mode.UPDATE":"עדכון", "mode.REBOOT":"אתחול",
+  "rl.wake":"<b>מקליטה</b> קליפ אירוע (Event)", "rl.off":"אין חשמל — חברו את כבל החשמל", "rl.boot":"מתחילה — כ-{n} שניות",
+  "rl.appstop":"ההקלטה <b>הופסקה מהאפליקציה</b>", "rl.drive":"<b>מקליטה</b> — Normal", "rl.park":"<b>צילום מואץ</b> — Parking · {d}",
+  "rl.sleep.on":"כבויה — זעזוע מעיר את המצלמה", "rl.sleep.off":"כבויה — זעזועים אינם נקלטים (מוניטור חניה כבוי)",
+  "rl.ota1":"קבלת העדכון {p}%", "rl.ota2":"בדיקת קובץ העדכון", "rl.ota3":"<b>התקנה — אין לנתק את החשמל</b>", "rl.ota4":"אתחול",
+  "wifi.off":"Wi-Fi כבוי", "wifi.on":"Wi-Fi פועל · {ssid}", "mic.on":"מיקרופון פועל", "mic.off":"מיקרופון כבוי",
+  "vi.off":"אין חשמל — חברו את כבל החשמל כדי להתחיל", "vi.boot":"מתחילה…", "vi.sleep.on":"המצלמה כבויה — זעזוע יעיר אותה", "vi.sleep.off":"המצלמה כבויה — מוניטור חניה כבוי, זעזועים אינם נקלטים", "vi.idle":"שקט — מחכים לאירוע הבא",
+  "scn.bench":"חשמל + הצתה", "scn.off":"כיבוי המנוע", "scn.on":"התנעה",
+  "wir.h":"חיווט", "wir.desc":"B+ מזין את המצלמה, ACC הוא ההצתה.",
+  "bplus.d":"חשמל קבוע — המצלמה פועלת ממנו", "acc.d":"הצתה — קובעת נסיעה או חניה", "bplus.aria":"B+ חשמל קבוע", "acc.aria":"ACC הצתה",
+  "psu.h":"מצבר הרכב", "psu.cut":"סף {v}V", "volt.aria":"מתח ההזנה",
+  "ps.cut":"<b>הגנת מצבר:</b> המצלמה נכבתה כדי לשמור על מצבר הרכב. היא תחזור לפעול בהתנעה או בחיבור מחדש של החשמל.",
+  "ps.armed":"<b>הגנת המצבר פעילה</b> (צילום מואץ). המצלמה תיכבה אם המתח יישאר ב-<b>{v}V</b> או מתחת לו כדקה{avg}.",
+  "ps.avg":" — ממוצע נוכחי {a}V",
+  "ps.idle":"הגנת המצבר פועלת במהלך צילום מואץ: המצלמה תיכבה אם המתח יישאר מתחת ל-<b>{v}V</b> כדקה. {s}",
+  "ps.below":"המתח כבר מתחת לסף.", "ps.drain":"המנוע כבוי, המצבר מתרוקן.", "ps.healthy":"המנוע כבוי, המצבר תקין.", "ps.charging":"המנוע פועל — המצבר נטען.",
+  "app.sub":"אפליקציה", "app.back":"חזרה", "conn.off":"המצלמה לא מחוברת", "conn.on":"מחובר · {ssid}", "conn.offwifi":"המצלמה לא מחוברת — Wi-Fi כבוי",
+  "app.nc.t":"המצלמה אינה מחוברת", "app.nc.d":"ה-Wi-Fi של המצלמה כבוי, ולכן האפליקציה לא יכולה להתחבר אליה.<br>לחצו על כפתור המצלמה כדי להפעיל שוב את ה-Wi-Fi — האפליקציה תתחבר מעצמה.", "app.nc.wait":"ממתין ל-{ssid}",
+  "app.rec":"הקלטה", "app.rec.run":"פועלת · עצור", "app.rec.stop":"הופסקה · התחל",
+  "ota.t":"עדכון קושחה", "ota.s1":"שליחת העדכון למצלמה", "ota.s2":"בדיקת העדכון", "ota.s3":"התקנת הקושחה", "ota.s4":"המצלמה מתאתחלת", "ota.warn":"אין לנתק את החשמל", "ota.pkg":"{v} &larr; קושחה חדשה (5.9MB)", "ota.step":"שלב {n} מתוך 4",
+  "rec.h":"הקלטה", "rec.desc":"מה המצלמה כותבת לכרטיס הזיכרון ולאן. ההקלטה מואצת <b>פי 12</b>, כך שמקטע של דקה נסגר תוך כחמש שניות; כל השאר רץ בזמן אמת.",
+  "rec.none":"לא מקליטה", "rec.armed":"מחכה לזעזוע — לא מקליטה", "rec.prot":"מוגן", "rec.spec.off":"חברו חשמל כדי להתחיל להקליט",
+  "rec.front":"קדמית", "rec.rear":"אחורית", "rec.audioOn":"קול פועל", "rec.audioOff":"קול כבוי", "rec.tl":"צילום מואץ", "rec.seg":"מקטע", "rec.clip":"קליפ אירוע",
+  "rec.sleep.on":"צריכה נמוכה. זעזוע מעיר את המצלמה והיא כותבת קליפ אחד.", "rec.sleep.off":"צריכה נמוכה. <b style='color:var(--accent)'>מוניטור חניה כבוי</b> — זעזועים אינם נקלטים.",
+  "rec.usage0":"כרטיס זיכרון 32GB · בשימוש 0MB · הקלטה מחזורית", "rec.usage":"כרטיס זיכרון 32GB · בשימוש {used} · קליפים: {n} · הקלטה מחזורית", "rec.empty":"אין עדיין קליפים.",
+  "log.h":"מה המצלמה עושה", "log.desc":"כל מה שהמצלמה עושה ואומרת, החדש למעלה.", "log.empty":"הפעילו את החשמל (B+) כדי להתחיל את המצלמה.",
+  "howto.h":"איך זה עובד",
+  "howto.1":"<b>חשמל.</b> עם ערכת החיבור הקבוע 12V ‏(B+ / ACC / GND) למצלמה יש את כל המצבים שלהלן. בהזנת USB 5V המצלמה אינה רואה את ההצתה, ולכן מקליטה רק בנסיעה — בלי מצב חניה ובלי הגנת מצבר. למצלמה אין מסך ואין GPS; השליטה בה דרך האפליקציה.",
+  "howto.2":"<b>נסיעה.</b> ההצתה פועלת: המצלמה משמיעה את מנגינת ההפעלה, אומרת «ההקלטה החלה» ומקליטה ברצף לתיקייה <b>Normal</b> בקליפים של דקה (3 או 5 דקות — באפליקציה). כשהכרטיס מתמלא, הקליפים הישנים ביותר מוחלפים. R588 מקליטה 2560×1440; R688 מקליטה 4K ‏(3840×2160, הגדלה מ-2560×1440); המצלמה האחורית 1920×1080. התאריך והשעה מוטבעים על הסרטון בפורמט YYYY-MM-DD.",
+  "howto.3":"<b>כיבוי ההצתה.</b> המצלמה אומרת «מצב חניה» (תוך כמה שניות). אם <b>הצילום המואץ</b> כבוי, היא נכבית כ-15 שניות לאחר מכן. אם הוא פועל, המצלמה אומרת «צילום בחניה הופעל» ומקליטה צילום מואץ איטי לתיקייה <b>Parking</b> למשך הזמן שנבחר (15 דקות, 12 או 24 שעות), ואז נכבית.",
+  "howto.4":"<b>זעזועים ומכות.</b> בנסיעה המצלמה מצפצפת והסרטון הנוכחי הופך לקליפ מוגן של 30 שניות בתיקייה <b>Event</b>. במהלך הצילום המואץ היא מצפצפת ומקליטה קליפ אירוע של 30 שניות במהירות מלאה (הוא עלול להתחיל שנייה-שתיים אחרי הזעזוע; אין הקלטה מקדימה), ואז הצילום המואץ ממשיך ב-4 פריימים לשנייה. כשהמצלמה כבויה, <b>מוניטור חניה</b> קובע: פועל — זעזוע מעיר את המצלמה, היא אומרת «מצב חניה» ושומרת קליפ אירוע אחד של 30 שניות; כבוי — זעזועים אינם נקלטים.",
+  "howto.5":"<b>הפעלת ההצתה מחדש.</b> בתוך כ-15 שניות מהכיבוי: המצלמה אומרת «מצב נסיעה» ופשוט ממשיכה להקליט. במהלך הצילום המואץ: המצלמה אומרת «מצב נסיעה», מתאתחלת (כ-10 שניות בלי הקלטה), ואז משמיעה את מנגינת ההפעלה ואומרת «ההקלטה החלה».",
+  "howto.6":"<b>הגנת מצבר.</b> במהלך צילום מואץ המצלמה עוקבת אחרי מצבר הרכב. אם המתח נשאר מתחת לסף (11.8V, ‏12.0V או 12.2V — באפליקציה) כ-1–1.5 דקות, המצלמה שומרת את הסרטון ונכבית בשקט; לאחר מכן היא מתעלמת מזעזועים וחוזרת לפעול בהתנעה. אם באותו רגע מוקלט קליפ זעזוע, הכיבוי עלול להתעכב בכדקה.",
+  "howto.7":"<b>Wi-Fi והאפליקציה.</b> רשת המצלמה היא <b>R588_XXXXXX</b> ‏(R688_XXXXXX ב-R688), סיסמה <b>12345678</b>. ה-Wi-Fi פועל בנסיעה, נכבה כ-2 שניות אחרי כיבוי ההצתה, ונכבה מעצמו אחרי כ-5 דקות בלי טלפון מחובר. אפליקציית Samsonix Pro משנה הגדרות, מציגה וידאו חי, מורידה קליפים ומכוונת את התאריך והשעה של המצלמה מהטלפון בכל התחברות. בהגדרות, «היפוך אנכי» הופך את תמונת המצלמה הקדמית.",
+  "howto.8":"<b>כרטיס זיכרון.</b> שלוש תיקיות: <b>Normal</b> (נסיעה), <b>Parking</b> (צילום מואץ) ו-<b>Event</b> (קליפים מוגנים — ההקלטה המחזורית אינה דורסת אותם; פירמוט מוחק אותם). אין צורך לפרמט את הכרטיס במחשב — המצלמה מכינה אותו בעצמה. כרטיס בפורמט אחר עלול להתפרמט אוטומטית בהכנסתו, תוך מחיקת כל תוכנו, לכן אל תכניסו כרטיס עם קבצים שאתם צריכים. אם הכרטיס חסר או פגום המצלמה אומרת «תקלה בכרטיס הזיכרון».",
+  "howto.9":"<b>הכפתור.</b> המצלמה פועלת בשחרור הכפתור: עד 3 שניות — שמירת הסרטון הנוכחי כקליפ מוגן של 30 שניות; החזקה של 4–6 שניות — הפעלה או כיבוי של ה-Wi-Fi (המצלמה אומרת «Wi-Fi on» / «Wi-Fi off»); החזקה של יותר מ-7 שניות — שחזור הגדרות היצרן.",
+  fwlabel:"קושחה 1.0.1.9.20260930",
+  "mt.OFF":"אין חשמל", "mt.BOOT":"המצלמה מתחילה", "mt.DRIVING":"נסיעה — הקלטה ל-Normal", "mt.PARKING":"חניה — צילום מואץ ל-Parking", "mt.SLEEP":"המצלמה כבויה (המתנה)",
+  "pt.0":"כבוי", "pt.1":"15 דק׳", "pt.2":"12 שע׳", "pt.3":"24 שע׳",
+  "v.parking":"מצב חניה", "v.driving":"מצב נסיעה", "v.lapse":"צילום בחניה הופעל", "v.beep":"צפצוף", "v.start":"מנגינת הפעלה",
+  "v.stopRec":"ההקלטה הופסקה", "v.wifiOn":"Wi-Fi פועל", "v.wifiOff":"Wi-Fi כבוי", "v.reset":"איפוס להגדרות יצרן", "v.emr":"הקלטת חירום",
+  "v.ota":"עדכון קושחה מתחיל", "v.audioOn":"מיקרופון פועל", "v.audioOff":"מיקרופון כבוי", "v.startRec":"ההקלטה החלה", "v.powerOff":"כיבוי",
+  "L.says":"המצלמה אומרת «{m}»", "L.beep":"המצלמה מצפצפת", "L.chime":"המצלמה משמיעה את מנגינת ההפעלה", "L.muted":" (מושתק באפליקציה)",
+  "L.full":"כרטיס הזיכרון מלא — הסרטון הישן ביותר מוחלף",
+  "L.ota1":"עדכון: הקושחה החדשה נשלחה למצלמה", "L.ota2":"עדכון: בדיקת הקובץ", "L.ota3":"עדכון: הקובץ תקין", "L.ota4":"עדכון: התקנה — אין לנתק את המצלמה", "L.ota5":"העדכון הותקן — המצלמה מתאתחלת", "L.ota6":"המצלמה שוב פועלת",
+  "L.evtTl":"קליפ האירוע נשמר ב-Event — חזרה לצילום מואץ", "L.evtAcc":"קליפ האירוע נשמר — ההצתה פועלת, המצלמה מתאתחלת", "L.evtSleep":"קליפ האירוע נשמר — המצלמה נכבית שוב וממשיכה לחכות לזעזוע", "L.evtNorm":"קליפ האירוע נשמר ב-Event — ההקלטה הרגילה ממשיכה",
+  "L.tlEnd":"זמן הצילום המואץ נגמר — המצלמה נכבית",
+  "L.lvp":"מתח נמוך — המצלמה נכבית כדי להגן על מצבר הרכב (הסרטון נשמר, Wi-Fi כבוי)",
+  "L.tlStart":"מתחיל צילום מואץ בחניה (תיקיית Parking)",
+  "L.poff":"המצלמה נכבית — {why}", "L.poff.tl":"זמן הצילום המואץ נגמר", "L.poff.15":"כ-15 שניות אחרי כיבוי ההצתה (הצילום המואץ כבוי)",
+  "L.down.on":"המצלמה כבויה — זעזוע יעיר אותה (מוניטור חניה פועל)", "L.down.off":"המצלמה כבויה — זעזועים אינם נקלטים (מוניטור חניה כבוי)",
+  "L.exitTl":"ההצתה הופעלה במהלך צילום מואץ — המצלמה אומרת «מצב נסיעה» ומתאתחלת",
+  "L.reboot":"המצלמה מתאתחלת — כ-{n} שניות בלי הקלטה",
+  "L.woke":"זעזוע העיר את המצלמה — הקלטת קליפ אירוע של 30 שניות ל-Event", "L.on":"המצלמה פועלת — הקלטה ל-Normal",
+  "L.wifiOn":"Wi-Fi פועל — האפליקציה יכולה להתחבר", "L.wifiOff":"Wi-Fi כבוי — האפליקציה מתנתקת",
+  "L.bOn":"החשמל חובר", "L.bOff":"החשמל נותק", "L.aOn":"ההצתה הופעלה", "L.aOff":"ההצתה כובתה", "L.noPower":"לא קורה דבר — למצלמה אין חשמל",
+  "L.impOff":"זעזוע — המצלמה כבויה", "L.impBoot":"זעזוע — המצלמה עדיין מתחילה", "L.imp":"זוהה זעזוע", "L.impBusy":"כבר מוקלט קליפ אירוע",
+  "L.impTl":"הקלטת קליפ אירוע של 30 שניות ל-Event — אחר כך הצילום המואץ ממשיך", "L.impTlBeep":"צפצוף בלבד — אין קליפ במהלך צילום מואץ", "L.impTlIgn":"לא נקלט במהלך צילום מואץ",
+  "L.impPmOff":"לא נקלט — מוניטור חניה כבוי", "L.impGsOff":"לא נקלט — חיישן ה-G כבוי", "L.impStopped":"לא נקלט — ההקלטה מופסקת", "L.impSpeak":"הוחמץ — המצלמה דיברה באותו רגע",
+  "L.impDrive":"קליפ האירוע נשמר ב-Event — הסרטון הנוכחי מוגן",
+  "L.impFull":"הקלטת הזעזוע במהירות מלאה", "L.impWoke":"המצלמה התעוררה — הקלטת קליפ אירוע", "L.impProt":"הקלטת קליפ אירוע מוגן",
+  "L.btnOff":"הכפתור נלחץ — למצלמה אין חשמל", "L.held":"הכפתור הוחזק {s} שניות", "L.reset":"איפוס להגדרות יצרן", "L.shortTl":"לחיצה קצרה במהלך צילום מואץ אינה נקלטת", "L.already":"קליפ כבר נשמר",
+  "L.saving":"שמירת הסרטון הנוכחי כקליפ מוגן", "L.protRec":"הקלטת קליפ מוגן ל-Event",
+  "L.bench":"החשמל וההצתה חוברו",
+  "L.appStop":"אפליקציה: עצירת ההקלטה", "L.appStart":"אפליקציה: התחלת ההקלטה", "L.nothingStop":"אין מה לעצור — המצלמה לא מקליטה", "L.nothingStart":"אין מה להתחיל — המצלמה לא מקליטה",
+  "L.notdemo":"{l} — לא מוצג בהדגמה זו", "L.appset":"הגדרה באפליקציה: {l} ← {v}", "L.on1":"פועל", "L.off1":"כבוי",
+  "L.fmt":"כרטיס הזיכרון פורמט — כל הסרטונים נמחקו",
+  "L.otaNoPower":"למצלמה אין חשמל", "L.otaNoWifi":"ה-Wi-Fi כבוי — האפליקציה לא יכולה להתחבר למצלמה", "L.otaStart":"מתחיל עדכון קושחה",
+  "L.frStart":"איפוס להגדרות יצרן — ההקלטה נעצרת, Wi-Fi כבוי", "L.frDone":"ההגדרות חזרו לערכי היצרן", "L.frWifi":"שם וסיסמת ה-Wi-Fi חזרו ל-R588_… / 12345678", "L.frReboot":"המצלמה מתאתחלת"
+},
+ar:{
+  title:"R588 — منطق الوقوف",
+  intro:"عرض تفاعلي لمنطق عمل كاميرا السيارة Samsonix R588 / R688. شغّل وأطفئ مفتاح التشغيل، «اطرق» على الكاميرا، غيّر الإعدادات في التطبيق — وشاهد ما تفعله الكاميرا.",
+  lede:"ما تفعله الكاميرا عند إطفاء المحرك. <b>التصوير المتسارع</b> يحدد هل تواصل الكاميرا التسجيل أثناء الوقوف أم تنطفئ؛ <b>مراقبة الوقوف</b> تحدد هل توقظها الصدمة.",
+  mc1t:"التصوير المتسارع متوقف", mc1:"إيقاف مفتاح التشغيل &larr; تقول الكاميرا «وضع الوقوف» وتنطفئ بعد نحو 15 ثانية. مع تشغيل مراقبة الوقوف، توقظها الصدمة لحفظ مقطع حدث مدته 30 ثانية.",
+  mc2t:"التصوير المتسارع مفعّل", mc2:"تقول الكاميرا «وضع الوقوف» ثم «تسجيل الوقوف مفعّل» وتسجّل تصويرًا متسارعًا بطيئًا للمدة المختارة. تحفظ الصدمة مقطع حدث مدته 30 ثانية بالسرعة الكاملة، ثم يستمر التصوير المتسارع.",
+  mc3t:"تشغيل المفتاح مجددًا", mc3:"تقول الكاميرا «وضع القيادة»، وتعيد التشغيل خلال نحو 10 ثوانٍ وتُصدر لحن البدء مع «بدأ التسجيل». يستمر التسجيل العادي.",
+  "chip.OFF":"مطفأة · لا طاقة", "chip.DRIVING":"قيادة · المفتاح موصول", "chip.PARKING":"وقوف · تصوير متسارع", "chip.SLEEP":"مطفأة · تنتظر صدمة",
+  "cam.h":"الكاميرا", "cam.desc":"الكاميرا تتصرف كما في السيارة. الزر على الصورة يعمل.",
+  "cam.shot":"انقر نقرًا مزدوجًا على الكاميرا لمحاكاة صدمة (مستشعر G)",
+  "cam.key":"زر الكاميرا: ضغطة قصيرة تحفظ الفيديو، الضغط 4–6 ثوانٍ لـ Wi-Fi، أكثر من 7 ثوانٍ لإعادة ضبط المصنع",
+  keyhint:"زر الكاميرا: حتى 3 ثوانٍ — حفظ الفيديو الحالي · 4–6 ثوانٍ — تشغيل/إيقاف Wi-Fi · أكثر من 7 ثوانٍ — إعادة الضبط · <b style=\"color:var(--accent)\">نقرة مزدوجة على الكاميرا = صدمة</b>",
+  "hold.wifi":"أفلت → Wi-Fi", "hold.wifiOn":"أفلت → تشغيل Wi-Fi", "hold.wifiOff":"أفلت → إيقاف Wi-Fi", "hold.reset":"أفلت → إعادة ضبط المصنع", "hold.emr":"أفلت → حفظ الفيديو (مقطع محمي)",
+  "u.s":"ث", "u.V":"V", "u.mA":"mA", "u.W":"W", "u.GB":"GB", "u.MB":"MB", "u.Mbps":"Mbps", "u.fps":"fps",
+  "mode.OFF":"مطفأة", "mode.BOOT":"بدء التشغيل", "mode.DRIVING":"قيادة", "mode.PARKING":"وقوف", "mode.SLEEP":"مطفأة", "mode.WAKE":"استيقاظ", "mode.UPDATE":"تحديث", "mode.REBOOT":"إعادة تشغيل",
+  "rl.wake":"<b>تسجيل</b> مقطع حدث (Event)", "rl.off":"لا طاقة — وصّل كابل الطاقة", "rl.boot":"بدء التشغيل — نحو {n} ثانية",
+  "rl.appstop":"التسجيل <b>متوقف من التطبيق</b>", "rl.drive":"<b>تسجيل</b> — Normal", "rl.park":"<b>تصوير متسارع</b> — Parking · {d}",
+  "rl.sleep.on":"مطفأة — الصدمة توقظ الكاميرا", "rl.sleep.off":"مطفأة — الصدمات مُهمَلة (مراقبة الوقوف متوقفة)",
+  "rl.ota1":"استلام التحديث {p}%", "rl.ota2":"فحص ملف التحديث", "rl.ota3":"<b>التثبيت — لا تفصل الطاقة</b>", "rl.ota4":"إعادة التشغيل",
+  "wifi.off":"Wi-Fi مطفأ", "wifi.on":"Wi-Fi مشغّل · {ssid}", "mic.on":"الميكروفون مشغّل", "mic.off":"الميكروفون مطفأ",
+  "vi.off":"لا طاقة — وصّل كابل الطاقة للبدء", "vi.boot":"بدء التشغيل…", "vi.sleep.on":"الكاميرا مطفأة — الصدمة توقظها", "vi.sleep.off":"الكاميرا مطفأة — مراقبة الوقوف متوقفة، الصدمات مُهمَلة", "vi.idle":"هدوء — بانتظار الحدث التالي",
+  "scn.bench":"الطاقة + المفتاح", "scn.off":"إطفاء المحرك", "scn.on":"تشغيل المحرك",
+  "wir.h":"التوصيل", "wir.desc":"B+ يغذّي الكاميرا، وACC هو مفتاح التشغيل.",
+  "bplus.d":"طاقة دائمة — تعمل الكاميرا منها", "acc.d":"مفتاح التشغيل — يحدد القيادة أو الوقوف", "bplus.aria":"B+ طاقة دائمة", "acc.aria":"ACC مفتاح التشغيل",
+  "psu.h":"بطارية السيارة", "psu.cut":"العتبة {v}V", "volt.aria":"جهد التغذية",
+  "ps.cut":"<b>حماية البطارية:</b> انطفأت الكاميرا للحفاظ على بطارية السيارة. تعود للعمل عند تشغيل المحرك أو إعادة توصيل الطاقة.",
+  "ps.armed":"<b>حماية البطارية مفعّلة</b> (تصوير متسارع). تنطفئ الكاميرا إذا بقي الجهد عند <b>{v}V</b> أو أقل نحو دقيقة{avg}.",
+  "ps.avg":" — المتوسط الحالي {a}V",
+  "ps.idle":"تعمل حماية البطارية أثناء التصوير المتسارع: تنطفئ الكاميرا إذا بقي الجهد أقل من <b>{v}V</b> نحو دقيقة. {s}",
+  "ps.below":"الجهد أقل من العتبة بالفعل.", "ps.drain":"المحرك متوقف، البطارية تفرغ.", "ps.healthy":"المحرك متوقف، البطارية سليمة.", "ps.charging":"المحرك يعمل — البطارية تُشحن.",
+  "app.sub":"تطبيق الهاتف", "app.back":"رجوع", "conn.off":"الكاميرا غير متصلة", "conn.on":"متصل · {ssid}", "conn.offwifi":"الكاميرا غير متصلة — Wi-Fi مطفأ",
+  "app.nc.t":"الكاميرا غير متصلة", "app.nc.d":"Wi-Fi الكاميرا مطفأ، فلا يستطيع التطبيق الوصول إليها.<br>اضغط زر الكاميرا لإعادة تشغيل Wi-Fi — يعيد التطبيق الاتصال بنفسه.", "app.nc.wait":"بانتظار {ssid}",
+  "app.rec":"التسجيل", "app.rec.run":"يعمل · إيقاف", "app.rec.stop":"متوقف · بدء",
+  "ota.t":"تحديث البرنامج الثابت", "ota.s1":"إرسال التحديث إلى الكاميرا", "ota.s2":"فحص التحديث", "ota.s3":"تثبيت البرنامج الثابت", "ota.s4":"الكاميرا تعيد التشغيل", "ota.warn":"لا تفصل الطاقة", "ota.pkg":"{v} &larr; برنامج ثابت جديد (5.9MB)", "ota.step":"الخطوة {n} من 4",
+  "rec.h":"التسجيل", "rec.desc":"ما تكتبه الكاميرا على بطاقة الذاكرة وأين. التسجيل مُسرَّع <b>12 مرة</b> بحيث يُغلق مقطع الدقيقة خلال نحو خمس ثوانٍ؛ كل ما عداه يجري بالزمن الحقيقي.",
+  "rec.none":"لا تسجّل", "rec.armed":"تنتظر صدمة — لا تسجّل", "rec.prot":"محمي", "rec.spec.off":"وصّل الطاقة لبدء التسجيل",
+  "rec.front":"الأمامية", "rec.rear":"الخلفية", "rec.audioOn":"الصوت مشغّل", "rec.audioOff":"الصوت مطفأ", "rec.tl":"تصوير متسارع", "rec.seg":"المقطع", "rec.clip":"مقطع الحدث",
+  "rec.sleep.on":"استهلاك منخفض. الصدمة توقظ الكاميرا وتكتب مقطعًا واحدًا.", "rec.sleep.off":"استهلاك منخفض. <b style='color:var(--accent)'>مراقبة الوقوف متوقفة</b> — الصدمات مُهمَلة.",
+  "rec.usage0":"بطاقة الذاكرة 32GB · المستخدم 0MB · تسجيل حلقي", "rec.usage":"بطاقة الذاكرة 32GB · المستخدم {used} · المقاطع: {n} · تسجيل حلقي", "rec.empty":"لا مقاطع بعد.",
+  "log.h":"ما تفعله الكاميرا", "log.desc":"كل ما تفعله الكاميرا وتقوله، الأحدث في الأعلى.", "log.empty":"شغّل الطاقة (B+) لبدء الكاميرا.",
+  "howto.h":"كيف يعمل",
+  "howto.1":"<b>الطاقة.</b> مع طقم التوصيل الثابت 12V ‏(B+ / ACC / GND) تتوفر للكاميرا كل الأوضاع أدناه. على تغذية USB 5V لا ترى الكاميرا مفتاح التشغيل، فتسجّل أثناء القيادة فقط — بلا وضع وقوف وبلا حماية بطارية. لا شاشة ولا GPS في الكاميرا؛ التحكم بها عبر التطبيق.",
+  "howto.2":"<b>القيادة.</b> المفتاح موصول: تُصدر الكاميرا لحن البدء، تقول «بدأ التسجيل» وتسجّل باستمرار في المجلد <b>Normal</b> بمقاطع مدتها دقيقة (3 أو 5 دقائق من التطبيق). عندما تمتلئ البطاقة تُستبدل أقدم المقاطع. تسجّل R588 بدقة 2560×1440؛ وR688 بدقة 4K ‏(3840×2160، مكبّرة من 2560×1440)؛ الكاميرا الخلفية 1920×1080. يُطبع التاريخ والوقت على الفيديو بصيغة YYYY-MM-DD.",
+  "howto.3":"<b>إيقاف مفتاح التشغيل.</b> تقول الكاميرا «وضع الوقوف» (خلال بضع ثوانٍ). إذا كان <b>التصوير المتسارع</b> متوقفًا، تنطفئ بعد نحو 15 ثانية. وإذا كان مفعّلًا، تقول الكاميرا «تسجيل الوقوف مفعّل» وتسجّل تصويرًا متسارعًا بطيئًا في المجلد <b>Parking</b> للمدة المختارة (15 دقيقة، 12 أو 24 ساعة)، ثم تنطفئ.",
+  "howto.4":"<b>الطرقات والصدمات.</b> أثناء القيادة تُصدر الكاميرا صفّارة ويصبح الفيديو الحالي مقطعًا محميًا مدته 30 ثانية في المجلد <b>Event</b>. أثناء التصوير المتسارع تُصدر صفّارة وتسجّل مقطع حدث مدته 30 ثانية بالسرعة الكاملة (قد يبدأ بعد ثانية أو ثانيتين من الصدمة؛ لا يوجد تسجيل مسبق)، ثم يستمر التصوير المتسارع بـ 4 إطارات في الثانية. عندما تكون الكاميرا مطفأة تحدد <b>مراقبة الوقوف</b>: مفعّلة — توقظ الصدمة الكاميرا، فتقول «وضع الوقوف» وتحفظ مقطع حدث واحدًا مدته 30 ثانية؛ متوقفة — تُهمَل الصدمات.",
+  "howto.5":"<b>تشغيل المفتاح مجددًا.</b> خلال نحو 15 ثانية من الإطفاء: تقول الكاميرا «وضع القيادة» وتواصل التسجيل ببساطة. أثناء التصوير المتسارع: تقول الكاميرا «وضع القيادة»، تعيد التشغيل (نحو 10 ثوانٍ بدون تسجيل)، ثم تُصدر لحن البدء وتقول «بدأ التسجيل».",
+  "howto.6":"<b>حماية البطارية.</b> أثناء التصوير المتسارع تراقب الكاميرا بطارية السيارة. إذا بقي الجهد أقل من العتبة (11.8V أو 12.0V أو 12.2V من التطبيق) نحو 1–1.5 دقيقة، تحفظ الكاميرا الفيديو وتنطفئ بصمت؛ ثم تُهمِل الصدمات وتعود عند تشغيل المحرك. إذا كان مقطع صدمة يُسجَّل في تلك اللحظة، فقد يتأخر الإطفاء نحو دقيقة.",
+  "howto.7":"<b>Wi-Fi والتطبيق.</b> شبكة الكاميرا هي <b>R588_XXXXXX</b> ‏(R688_XXXXXX في R688)، كلمة المرور <b>12345678</b>. يعمل Wi-Fi أثناء القيادة، وينطفئ بعد نحو ثانيتين من إيقاف المفتاح، وينطفئ من تلقاء نفسه بعد نحو 5 دقائق بدون هاتف متصل. يغيّر تطبيق Samsonix Pro الإعدادات ويعرض الفيديو المباشر وينزّل المقاطع ويضبط تاريخ ووقت الكاميرا من الهاتف في كل اتصال. في الإعدادات، «היפוך אנכי» (القلب العمودي) يقلب صورة الكاميرا الأمامية.",
+  "howto.8":"<b>بطاقة الذاكرة.</b> ثلاثة مجلدات: <b>Normal</b> (القيادة)، <b>Parking</b> (التصوير المتسارع) و<b>Event</b> (المقاطع المحمية — لا يستبدلها التسجيل الحلقي؛ التهيئة تمحوها). لا حاجة لتهيئة البطاقة على الحاسوب — الكاميرا تجهّزها بنفسها. قد تُهيَّأ بطاقة بصيغة أخرى تلقائيًا عند إدخالها مع محو كل ما عليها، فلا تُدخل بطاقة تحوي ملفات تحتاجها. إذا كانت البطاقة مفقودة أو معطوبة تقول الكاميرا «خطأ في بطاقة الذاكرة» (תקלה בכרטיס הזיכרון).",
+  "howto.9":"<b>الزر.</b> تنفّذ الكاميرا الإجراء عند إفلات الزر: حتى 3 ثوانٍ — حفظ الفيديو الحالي كمقطع محمي مدته 30 ثانية؛ الضغط 4–6 ثوانٍ — تشغيل أو إيقاف Wi-Fi (تقول الكاميرا «Wi-Fi on» / «Wi-Fi off»)؛ الضغط أكثر من 7 ثوانٍ — استعادة إعدادات المصنع.",
+  fwlabel:"البرنامج الثابت 1.0.1.9.20260930",
+  "mt.OFF":"لا طاقة", "mt.BOOT":"الكاميرا تبدأ التشغيل", "mt.DRIVING":"قيادة — التسجيل في Normal", "mt.PARKING":"وقوف — تصوير متسارع في Parking", "mt.SLEEP":"الكاميرا مطفأة (انتظار)",
+  "pt.0":"متوقف", "pt.1":"15 د", "pt.2":"12 س", "pt.3":"24 س",
+  "v.parking":"وضع الوقوف", "v.driving":"وضع القيادة", "v.lapse":"تسجيل الوقوف مفعّل", "v.beep":"صفّارة", "v.start":"لحن التشغيل",
+  "v.stopRec":"توقف التسجيل", "v.wifiOn":"Wi-Fi مشغّل", "v.wifiOff":"Wi-Fi مطفأ", "v.reset":"إعادة ضبط المصنع", "v.emr":"تسجيل الطوارئ",
+  "v.ota":"بدء تحديث البرنامج الثابت", "v.audioOn":"الميكروفون مشغّل", "v.audioOff":"الميكروفون مطفأ", "v.startRec":"بدأ التسجيل", "v.powerOff":"الإطفاء",
+  "L.says":"تقول الكاميرا «{m}»", "L.beep":"تُصدر الكاميرا صفّارة", "L.chime":"تُصدر الكاميرا لحن التشغيل", "L.muted":" (مكتوم في التطبيق)",
+  "L.full":"بطاقة الذاكرة ممتلئة — يُستبدل أقدم فيديو",
+  "L.ota1":"التحديث: أُرسل البرنامج الثابت الجديد إلى الكاميرا", "L.ota2":"التحديث: فحص الملف", "L.ota3":"التحديث: الملف سليم", "L.ota4":"التحديث: التثبيت — لا تفصل الكاميرا", "L.ota5":"تم تثبيت التحديث — الكاميرا تعيد التشغيل", "L.ota6":"الكاميرا تعمل مجددًا",
+  "L.evtTl":"حُفظ مقطع الحدث في Event — العودة إلى التصوير المتسارع", "L.evtAcc":"حُفظ مقطع الحدث — المفتاح موصول، الكاميرا تعيد التشغيل", "L.evtSleep":"حُفظ مقطع الحدث — تنطفئ الكاميرا مجددًا وتواصل انتظار الصدمات", "L.evtNorm":"حُفظ مقطع الحدث في Event — يستمر التسجيل العادي",
+  "L.tlEnd":"انتهت مدة التصوير المتسارع — الكاميرا تنطفئ",
+  "L.lvp":"الجهد منخفض — تنطفئ الكاميرا لحماية بطارية السيارة (الفيديو محفوظ، Wi-Fi مطفأ)",
+  "L.tlStart":"يبدأ التصوير المتسارع في الوقوف (مجلد Parking)",
+  "L.poff":"الكاميرا تنطفئ — {why}", "L.poff.tl":"انتهت مدة التصوير المتسارع", "L.poff.15":"بعد نحو 15 ثانية من إيقاف المفتاح (التصوير المتسارع متوقف)",
+  "L.down.on":"الكاميرا مطفأة — الصدمة ستوقظها (مراقبة الوقوف مفعّلة)", "L.down.off":"الكاميرا مطفأة — الصدمات مُهمَلة (مراقبة الوقوف متوقفة)",
+  "L.exitTl":"تشغيل المفتاح أثناء التصوير المتسارع — تقول الكاميرا «وضع القيادة» وتعيد التشغيل",
+  "L.reboot":"الكاميرا تعيد التشغيل — نحو {n} ثانية بدون تسجيل",
+  "L.woke":"أيقظت الصدمة الكاميرا — تسجيل مقطع حدث مدته 30 ثانية في Event", "L.on":"الكاميرا تعمل — التسجيل في Normal",
+  "L.wifiOn":"Wi-Fi مشغّل — يمكن للتطبيق الاتصال", "L.wifiOff":"Wi-Fi مطفأ — ينقطع اتصال التطبيق",
+  "L.bOn":"وُصلت الطاقة", "L.bOff":"فُصلت الطاقة", "L.aOn":"المفتاح موصول", "L.aOff":"المفتاح مفصول", "L.noPower":"لا يحدث شيء — لا طاقة للكاميرا",
+  "L.impOff":"صدمة — الكاميرا مطفأة", "L.impBoot":"صدمة — الكاميرا لا تزال تبدأ التشغيل", "L.imp":"رُصدت صدمة", "L.impBusy":"يُسجَّل مقطع حدث بالفعل",
+  "L.impTl":"تسجيل مقطع حدث مدته 30 ثانية في Event — ثم يستمر التصوير المتسارع", "L.impTlBeep":"صفّارة فقط — لا مقطع أثناء التصوير المتسارع", "L.impTlIgn":"مُهمَلة أثناء التصوير المتسارع",
+  "L.impPmOff":"مُهمَلة — مراقبة الوقوف متوقفة", "L.impGsOff":"مُهمَلة — مستشعر G متوقف", "L.impStopped":"مُهمَلة — التسجيل متوقف", "L.impSpeak":"فاتت — كانت الكاميرا تتكلم في تلك اللحظة",
+  "L.impDrive":"حُفظ مقطع الحدث في Event — الفيديو الحالي محمي",
+  "L.impFull":"تسجيل الصدمة بالسرعة الكاملة", "L.impWoke":"استيقظت الكاميرا — تسجيل مقطع حدث", "L.impProt":"تسجيل مقطع حدث محمي",
+  "L.btnOff":"ضُغط الزر — لا طاقة للكاميرا", "L.held":"ضُغط الزر {s} ث", "L.reset":"إعادة ضبط المصنع", "L.shortTl":"الضغطة القصيرة مُهمَلة أثناء التصوير المتسارع", "L.already":"يُحفظ مقطع بالفعل",
+  "L.saving":"حفظ الفيديو الحالي كمقطع محمي", "L.protRec":"تسجيل مقطع محمي في Event",
+  "L.bench":"وُصلت الطاقة والمفتاح",
+  "L.appStop":"التطبيق: إيقاف التسجيل", "L.appStart":"التطبيق: بدء التسجيل", "L.nothingStop":"لا شيء لإيقافه — الكاميرا لا تسجّل", "L.nothingStart":"لا شيء لبدئه — الكاميرا لا تسجّل",
+  "L.notdemo":"{l} — غير معروض في هذا العرض", "L.appset":"إعداد في التطبيق: {l} ← {v}", "L.on1":"مشغّل", "L.off1":"متوقف",
+  "L.fmt":"هُيّئت بطاقة الذاكرة — مُحيت كل مقاطع الفيديو",
+  "L.otaNoPower":"لا طاقة للكاميرا", "L.otaNoWifi":"Wi-Fi مطفأ — لا يستطيع التطبيق الوصول إلى الكاميرا", "L.otaStart":"يبدأ تحديث البرنامج الثابت",
+  "L.frStart":"إعادة ضبط المصنع — يتوقف التسجيل، Wi-Fi مطفأ", "L.frDone":"عادت الإعدادات إلى قيم المصنع", "L.frWifi":"عاد اسم وكلمة مرور Wi-Fi إلى R588_… / 12345678", "L.frReboot":"الكاميرا تعيد التشغيل"
+}
+};
+function t(k,vars){
+  let s=I18N[LANG]&&I18N[LANG][k]; if(s===undefined) s=I18N.en[k]; if(s===undefined) return k;
+  if(vars) for(const v in vars) s=s.split("{"+v+"}").join(vars[v]);
+  return s;
+}
+/* static markup: data-i18n = innerHTML, data-i18n-title / data-i18n-aria = attributes */
+function applyI18n(){
+  document.querySelectorAll("[data-i18n]").forEach(el=>{ el.innerHTML=t(el.dataset.i18n); });
+  document.querySelectorAll("[data-i18n-title]").forEach(el=>{ el.title=t(el.dataset.i18nTitle); });
+  document.querySelectorAll("[data-i18n-aria]").forEach(el=>{ el.setAttribute("aria-label",t(el.dataset.i18nAria)); });
+  document.title=t("title");
+  const ls=$("langsw");
+  if(ls) ls.innerHTML=Object.entries(LANGS).map(([k,n])=>`<button type="button" lang="${k}" aria-pressed="${k===LANG}" onclick="setLang('${k}')">${n}</button>`).join("");
+}
 /* plain names of the camera states for the simple log */
-const MODE_TXT={OFF:"No power",BOOT:"Camera starting up",DRIVING:"Driving — recording to Normal",
-  PARKING:"Parking — time-lapse recording to Parking",SLEEP:"Camera off (standby)"};
+const modeTxt=m=>t("mt."+m);
+const parkTxt=v=>t("pt."+v);
+/* ---- Samsonix Pro texts, verbatim from the app in each of its languages (screenshots in
+   manual_R588/app_screens/{en,ru,he}). The app has no Arabic UI: Arabic pages show the Hebrew app.
+   Keys with no entry in a language are not shown in that language's panel (no verified wording). ---- */
+const APP_L10N={
+en:{ title:"settings",
+  rows:{WIFI_NAME:"change wifi name",WIFI_PW:"change wifi password",MEDIAMODE:"Video resolution",SPLIT:"Loop Recording Time",AUDIO:"Record audio",
+        GSR_DRIVE:"G-Sensor Sensitivity",GSR_PARKING:"Parking Monitor",PARK_TIMER:"Time lapse recording duration",LOW_FPS:"Time Lapse Frame Rate",
+        MIRROR:"mirror display from left to right",FLIP:"vertical reflection",LOW_POWER:"Low voltage regulation",SPEED:"Speed unit",VOLUME:"Volume",
+        FORMAT:"Format Device",RESET:"Restore factory settings",FW:"Firmware version"},
+  hints:{SPLIT:"The duration of each recording segment; once the memory card is full, it will automatically overwrite the oldest video based on time",
+         AUDIO:"After turning off, the device video will no longer record audio",
+         GSR_DRIVE:"When a collision occurs, automatically lock the video of the impact to prevent it from being overwritten, which serves as evidence for the incident"},
+  opts:{SPLIT:{60:"1 minute",180:"3 Minutes",300:"5 Minutes"},GSR_DRIVE:{0:"Off",1:"low",2:"Medium",3:"High"},GSR_PARKING:{0:"Off",1:"low",2:"Medium",3:"High"},
+        PARK_TIMER:{0:"Off",1:"15 Minutes",2:"12 Hours",3:"24 Hours"},LOW_FPS:{1000:"1FPS",500:"2fps/s",333:"3fps/s"},
+        LOW_POWER:{0:"11.8V",1:"12.0V",2:"12.2V"},SPEED:{0:"km/h",1:"mph"},VOLUME:{0:"Mute",60:"low",80:"Medium",88:"High"}},
+  dlg:{wifiName:{title:"change wifi name",ph:["enter the new wifi name"]},
+       wifiPw:{title:"Change the WiFi password",ph:["enter the new wifi password...","confirm the new wifi password..."]},
+       format:"Are you sure you want to format the SD card?",reset:"Confirm Resetting to Factory Settings?",cancel:"cancel",ok:"confirm"}},
+ru:{ title:"настраивать",
+  rows:{WIFI_NAME:"Изменить имя Wi-Fi",WIFI_PW:"Изменить пароль Wi-Fi",MEDIAMODE:"Разрешение видео",SPLIT:"Время циклической записи",AUDIO:"запись",
+        GSR_DRIVE:"Чувствительность к столкновениям",GSR_PARKING:"мониторинг парковки",PARK_TIMER:"Продолжительность записи",LOW_FPS:"Частота кадров покадрового видео",
+        FLIP:"отразить по вертикали",LOW_POWER:"регулирование низкого напряжения",SPEED:"единица измерения скорости",VOLUME:"объем",
+        FORMAT:"Форматирование устройства",RESET:"Восстановить заводские настройки",FW:"Версия прошивки"},
+  hints:{SPLIT:"Длительность каждого сегмента записи; после заполнения карты памяти она автоматически перезапишет самое старое видео по времени",
+         AUDIO:"Nach dem Ausschalten wird das Video des Geräts keinen Ton mehr aufnehmen",   /* sic — the Russian app shows this hint in German */
+         GSR_DRIVE:"При столкновении автоматически блокирует видеозапись удара, чтобы предотвратить ее перезапись, которая служит доказательством инцидента."},
+  opts:{SPLIT:{60:"1 минута",180:"3 минуты",300:"5 минут"},GSR_DRIVE:{0:"Выкл",1:"низкий",2:"середина",3:"высокий"},GSR_PARKING:{0:"Выкл",1:"низкий",2:"середина",3:"высокий"},
+        PARK_TIMER:{0:"Выкл",1:"15 минут",2:"12 часов",3:"24 часа"},LOW_FPS:{1000:"1 секунда 1 кадр",500:"2 секунды 1 кадр",333:"3 секунды 1 кадр"},
+        LOW_POWER:{0:"11.8V",1:"12.0V",2:"12.2V"},SPEED:{0:"km/h",1:"mph"},VOLUME:{0:"Без звука",60:"низкий",80:"середина",88:"высокий"}},
+  dlg:{wifiName:{title:"изменить имя wifi",ph:["введите новое имя wifi"]},
+       wifiPw:{title:"Изменить пароль Wi-Fi",ph:["введите новый пароль wifi...","подтвердите новый пароль wifi..."]},
+       format:"Вы уверены, что хотите отформатировать SD-карту?",reset:"Вы уверены, что хотите восстановить заводские настройки?",cancel:"отмена",ok:"подтверждать"}},
+he:{ title:"הגדרות",
+  rows:{WIFI_NAME:"שנה שם WiFi",WIFI_PW:"שנה סיסמת WIFI",MEDIAMODE:"רזולוציית וידאו",SPLIT:"זמן הקלטת סרטון",AUDIO:"הקלטת קול",
+        GSR_DRIVE:"רגישות זעזוע בחניה",GSR_PARKING:"מוניטור חניה",PARK_TIMER:"משך זמן הקלטה בחניה",LOW_FPS:"קצב פריים של תמונה מופרדת",
+        FLIP:"היפוך אנכי",LOW_POWER:"כיבוי מותנה מתח נמוך במצבר",SPEED:"יחידת מהירות",VOLUME:"שמע",
+        FORMAT:"פירמוט כרטיס זיכרון",RESET:"שחזר הגדרות יצרן",FW:"גרסת קושחה"},
+  hints:{SPLIT:"המשך של כל קטע הקלטה; כאשר כרטיס הזיכרון מלא, הוא יחליף אוטומטית את הווידאו הישן ביותר על פי זמן",
+         AUDIO:"לאחר כיבוי, הווידאו של המכשיר לא יקליט יותר צליל",
+         GSR_DRIVE:"כשמתרחשת התנגשות, נעל אוטומטית את הווידאו של ההתנגשות כדי למנוע ממנו להידרס, מה שישמש כהוכחה לאירוע"},
+  opts:{SPLIT:{60:"1 דקה",180:"3 דקה",300:"5 דקה"},GSR_DRIVE:{0:"כבוי",1:"נָמוּךְ",2:"אֶמצַע",3:"גָבוֹהַ"},GSR_PARKING:{0:"כבוי",1:"נָמוּךְ",2:"אֶמצַע",3:"גָבוֹהַ"},
+        PARK_TIMER:{0:"כבוי",1:"15 דקות",2:"12 שעות",3:"24 שעות"},LOW_FPS:{1000:"1 פריים לשנייה",500:"2 פריימים לשנייה",333:"3 פריימים לשנייה"},
+        LOW_POWER:{0:"11.8V",1:"12.0V",2:"12.2V"},SPEED:{0:"km/h",1:"mph"},VOLUME:{0:"מושתק",60:"נָמוּךְ",80:"אֶמצַע",88:"גָבוֹהַ"}},
+  dlg:{wifiName:{title:"שנה שם WiFi",ph:["הזן את שם ה-WiFi החדש"]},
+       wifiPw:{title:"שנה סיסמת WIFI",ph:["הזן סיסמת WiFi חדשה...","אשר סיסמת WiFi חדשה.."]},
+       format:"האם אתה בטוח שברצונך לפרמט את כרטיס ה-SD?",reset:"לאשר איפוס להגדרות היצרן?",cancel:"ביטול",ok:"אשר"}}
+};
+const APP_LANG=(LANG==="ar")?"he":LANG;
+const APP=APP_L10N[APP_LANG]||APP_L10N.en;
 /* every log entry can carry two wordings: `simple` for the buyer, `html` for the engineer.
    An entry with no simple wording is an internal detail and is not shown in the simple view. */
 function logEl(cls,html,simple){
@@ -816,43 +1260,43 @@ function addClip(folder,cls,name,dur,size,locked){
     let idx=-1; for(let i=card.clips.length-1;i>=0;i--) if(!card.clips[i].locked){idx=i;break;}
     if(idx<0) break;
     card.used-=card.clips[idx].size; card.clips.splice(idx,1);
-    logS("Memory card full — the oldest video is replaced","", `<span style="color:var(--ink-3)">loop — oldest clip overwritten</span>`);
+    logS(t("L.full"),"", `<span style="color:var(--ink-3)">loop — oldest clip overwritten</span>`);
   }
   if(card.clips.length>60) card.clips.length=60;
   paintClips();
 }
 function paintClips(){
   const ul=$("clips");
-  if(!card.clips.length) ul.innerHTML='<li class="empty">No clips yet.</li>';
+  if(!card.clips.length) ul.innerHTML=`<li class="empty">${t("rec.empty")}</li>`;
   else ul.innerHTML=card.clips.slice(0,40).map(c=>
     `<li><span class="badge ${c.cls}">${c.folder}/F+R</span><span class="nm">${esc(c.name)}.TS</span>
-      ${c.locked?'<span class="lk" title="protected"><svg class="i sm"><use href="#ic-lock"/></svg></span>':''}
-      <span class="sz">${mmss(c.dur)} · ${fmtMB(c.size)}</span></li>`).join("");
+      ${c.locked?'<span class="lk" title="${t("rec.prot")}"><svg class="i sm"><use href="#ic-lock"/></svg></span>':''}
+      <span class="sz ltr">${mmss(c.dur)} · ${fmtMB(c.size)}</span></li>`).join("");
   $("rcard").style.width=Math.min(100,card.used/CAP*100)+"%";
-  $("rusage").textContent=`SD card 32 GB · ${fmtMB(card.used)} used · ${card.clips.length} clips · loop recording`;
+  $("rusage").textContent=t("rec.usage",{used:fmtMB(card.used),n:card.clips.length});
 }
 function paintRec(){
   const b=$("rbadge"),n=$("rname"),s=$("rspec"),bar=$("rbar");
   if(evt.active){
     const p=PROF("EVENT"), f=evt.folder||"Event";
-    b.className="badge "+(f==="Parking"?"parking":"event"); b.textContent=f+"/F + "+f+"/R · protected";
+    b.className="badge "+(f==="Parking"?"parking":"event"); b.textContent=`${f}/F + ${f}/R · ${t("rec.prot")}`;
     n.textContent=evt.name+".TS";
     const es=evt.seg||p.seg, er=evt.rate||p.rate;
-    s.innerHTML=p.spec+"<br>impact clip "+mmss(evt.t)+" / "+mmss(es)+" · "+fmtMB(evt.t*er);
+    s.innerHTML=p.spec+"<br>"+t("rec.clip")+` <span class="ltr">${mmss(evt.t)} / ${mmss(es)}</span> · <span class="ltr">${fmtMB(evt.t*er)}</span>`;
     bar.style.width=(evt.t/es*100)+"%"; return;
   }
   if(!rec.active){
-    b.className="badge none"; b.textContent=S.mode==="SLEEP"?"armed — not recording":"not recording";
+    b.className="badge none"; b.textContent=t(S.mode==="SLEEP"?"rec.armed":"rec.none");
     n.textContent="—";
     s.innerHTML=S.mode==="SLEEP"
-      ? (cfg("GSR_PARKING")?"Low power. A G-sensor impact wakes the camera and writes one clip.":"Low power. <b style='color:var(--accent)'>Parking monitor is OFF</b> — impacts are ignored.")
-      : S.mode==="OFF"?"Connect power to start recording":"—";
+      ? t(cfg("GSR_PARKING")?"rec.sleep.on":"rec.sleep.off")
+      : S.mode==="OFF"?t("rec.spec.off"):"—";
     bar.style.width="0"; return;
   }
   const p=PROF(rec.mode);
   b.className="badge "+p.cls; b.textContent=p.folder+"/F + "+p.folder+"/R";
   n.textContent=rec.name+".TS";
-  s.innerHTML=p.spec+"<br>segment "+mmss(rec.t)+" / "+mmss(p.seg)+" · "+fmtMB(rec.t*p.rate);
+  s.innerHTML=p.spec+"<br>"+t("rec.seg")+` <span class="ltr">${mmss(rec.t)} / ${mmss(p.seg)}</span> · <span class="ltr">${fmtMB(rec.t*p.rate)}</span>`;
   bar.style.width=(rec.t/p.seg*100)+"%";
 }
 function setRecording(mode){
@@ -870,19 +1314,19 @@ function otaTick(){
   if(ota.t<lim) return;
   ota.t=0;
   if(ota.phase===1){
-    logS("Update: the new firmware has been sent to the camera","", `<span class="cgi">recv file over</span> — package received (5.9 MB)`);
-    logS("Update: checking the file","", `verifying container: magic 0x08122515 + CRC32`);
+    logS(t("L.ota1"),"", `<span class="cgi">recv file over</span> — package received (5.9 MB)`);
+    logS(t("L.ota2"),"", `verifying container: magic 0x08122515 + CRC32`);
     ota.phase=2;
   } else if(ota.phase===2){
-    logS("Update: file is good","ok","CRC32 OK — product id matches GK7206V11-FV-CARDV");
-    logS("Update: installing — do not unplug the camera","", `writing partitions: u-boot.bin, bootargs.bin, kernel, rootfs.squashfs, param`);
+    logS(t("L.ota3"),"ok","CRC32 OK — product id matches GK7206V11-FV-CARDV");
+    logS(t("L.ota4"),"", `writing partitions: u-boot.bin, bootargs.bin, kernel, rootfs.squashfs, param`);
     ota.phase=3;
   } else if(ota.phase===3){
-    logS("Update installed — the camera restarts","ok","partitions written — rebooting");
+    logS(t("L.ota5"),"ok","partitions written — rebooting");
     ota.phase=4; S.wifi=false; lastWifi=false;
   } else {
     ota.active=false; ota.phase=0; ota.pct=0;
-    logS("Camera is back on","ok","camera back up — firmware "+fwVer());
+    logS(t("L.ota6"),"ok","camera back up — firmware "+fwVer());
     if(S.acc&&S.bplus){ S.wifi=true; S.wifiT=0; }
     S.mode="OFF"; refresh(true); appRender();
     return;
@@ -898,14 +1342,14 @@ setInterval(()=>{
       const folder=evt.folder||"Event";
       addClip(folder,folder==="Parking"?"parking":"event",evt.name,evt.seg,evt.seg*evt.rate,true);
       const fs=evt.fromSleep, fl=evt.fromLapse; evt.active=false;
-      if(fl){ logS("Event clip saved to Event — back to time-lapse recording","ok",`Event clip closed — back to time-lapse for the rest of the window${P.tlEvent?" — restarted at <b>4 fps</b> instead of 3 (mov r3,#4 @0x23ba4); the parking timer kept running":""}`); if(P.tlEvent) S.tlFps4=true; }
+      if(fl){ logS(t("L.evtTl"),"ok",`Event clip closed — back to time-lapse for the rest of the window${P.tlEvent?" — restarted at <b>4 fps</b> instead of 3 (mov r3,#4 @0x23ba4); the parking timer kept running":""}`); if(P.tlEvent) S.tlFps4=true; }
       else if(fs){
         S.waking=false;
-        if(P.fw && S.acc){ logS("Event clip saved — the ignition is on, the camera restarts","ok","Wake clip closed — ACC is live → sync + reboot (@0x34440)"); if(P.stickyAccOn) S.pmc58=true; startBoot("reboot after the G-wake clip"); }
-        else if(P.fw) logS("Event clip saved — the camera switches off again and keeps watching for impacts","ok","Wake clip closed — PowerOff (@0x346bc), G-sensor re-armed");
-        else logS("Event clip saved — the camera switches off again and keeps watching for impacts","ok","Event clip closed — camera powers down again, G-sensor re-armed");
+        if(P.fw && S.acc){ logS(t("L.evtAcc"),"ok","Wake clip closed — ACC is live → sync + reboot (@0x34440)"); if(P.stickyAccOn) S.pmc58=true; startBoot("reboot after the G-wake clip"); }
+        else if(P.fw) logS(t("L.evtSleep"),"ok","Wake clip closed — PowerOff (@0x346bc), G-sensor re-armed");
+        else logS(t("L.evtSleep"),"ok","Event clip closed — camera powers down again, G-sensor re-armed");
       }
-      else logS("Event clip saved to Event — normal recording continues","ok","Event clip closed — normal recording resumes");
+      else logS(t("L.evtNorm"),"ok","Event clip closed — normal recording resumes");
       refresh(false);
     }
   } else if(rec.active){
@@ -939,10 +1383,10 @@ setInterval(()=>{
        changing the setting during the window does nothing until the next entry */
     if(S.parkT>=(P.fw?S.tlSec:PARKSEC[cfg("PARK_TIMER")])){
       S.parkDone=true; S.parkT=0;
-      if(P.fw){ logS("Time-lapse time is up — the camera switches off","ok",`Time-lapse window used up — timer callback (@0x344a0) → PowerOff`); fwPowerOff("time-lapse timer expired","the time-lapse time is up"); }
+      if(P.fw){ logS(t("L.tlEnd"),"ok",`Time-lapse window used up — timer callback (@0x344a0) → PowerOff`); fwPowerOff("time-lapse timer expired",t("L.poff.tl")); }
       else {
         if(rec.active){ closeSeg(true); rec.active=false; }
-        logS("Time-lapse time is up — the camera switches off","ok",`Time-lapse window of ${PARKTXT[cfg("PARK_TIMER")]} used up — the camera powers itself down; the G-sensor stays armed and boots it on an impact`);
+        logS(t("L.tlEnd"),"ok",`Time-lapse window of ${parkTxt(cfg("PARK_TIMER"))} used up — the camera powers itself down; the G-sensor stays armed and boots it on an impact`);
         refresh(false);
       }
     }
@@ -968,7 +1412,7 @@ setInterval(()=>{
         }
         if(lvp.consec>=2){
           S.lowcut=true; lvp.consec=0;
-          logS("Battery low — the camera switches off to protect the car battery (video saved, Wi-Fi off)","", `<span style="color:var(--accent)">two low windows in a row — 0x10432005 → PDT_UI_PowerOff, ≈${Math.round(lvp.armT)} s after the time-lapse started (${Math.round(lvp.armT/LVP_T)} samples)</span>`);
+          logS(t("L.lvp"),"", `<span style="color:var(--accent)">two low windows in a row — 0x10432005 → PDT_UI_PowerOff, ≈${Math.round(lvp.armT)} s after the time-lapse started (${Math.round(lvp.armT/LVP_T)} samples)</span>`);
           /* powerOff.mp3 sits in every image but nothing calls it: the real builds die without a word */
           if(P.powerOffVoice) enqueue([{clip:"powerOff"}]);
           else logEl("", `<span style="color:var(--ink-3)">no announcement — powerOff.mp3 is in the image but the firmware never plays it</span>`);
@@ -1103,7 +1547,7 @@ function accEvent(id){
   if(id===0){                                   /* the fork, 15th sample */
     if(S.tl) return;                            /* already in the time-lapse: ignored */
     if(evt.active){ logEl("", `<span class="cgi">0x10437000</span> 15th sample — <span style="color:var(--accent)">fork skipped, an Event clip is being written (state1≠0)</span>; retried in 15 s, and the ≈2 s word plays again`); return; }
-    if(cfg("PARK_TIMER")>0) enterLapse(); else fwPowerOff("15 samples after ACC off with LOW_FPS_REC = OFF (@0x34f64)","about 15 seconds after the ignition went off (time-lapse is off)");
+    if(cfg("PARK_TIMER")>0) enterLapse(); else fwPowerOff("15 samples after ACC off with LOW_FPS_REC = OFF (@0x34f64)",t("L.poff.15"));
   }
   if(id===2){                                   /* ACC on edge */
     logEl("", `<span class="cgi">0x10437002</span> ACC on edge (first sample after OFF)`);
@@ -1116,25 +1560,25 @@ function accEvent(id){
 }
 function enterLapse(){
   S.busy=true; S.tlSec=PARKSEC[cfg("PARK_TIMER")];
-  logS("Time-lapse parking recording starts (Parking folder)","", `<span class="cgi">0x10437000</span> 15th sample — LOW_FPS_REC on → time-lapse: <code>app_record_stop</code>, 0.5 s, channel mode, 0.5 s, <code>app_record_start</code> (@0x34fa0…0x35004); Parking Monitor not consulted`);
+  logS(t("L.tlStart"),"", `<span class="cgi">0x10437000</span> 15th sample — LOW_FPS_REC on → time-lapse: <code>app_record_stop</code>, 0.5 s, channel mode, 0.5 s, <code>app_record_start</code> (@0x34fa0…0x35004); Parking Monitor not consulted`);
   if(rec.active){ closeSeg(true); rec.active=false; paintRec(); }
   later(1,()=>{ S.busy=false; S.tl=true; refresh(true); });
 }
 function fwPowerOff(why,whyS){
   S.busy=true;
-  logS(`Camera switches off — ${whyS||why}`,"", `<b>PDT_UI_PowerOff</b> — ${why}: recording stops, LED solid, the recorder is given ≤5 s`);
+  logS(t("L.poff",{why:whyS||why}),"", `<b>PDT_UI_PowerOff</b> — ${why}: recording stops, LED solid, the recorder is given ≤5 s`);
   logEl("", `<span style="color:var(--ink-3)">no announcement — powerOff.mp3 is in the image but nothing calls it</span>`);
   if(rec.active){ closeSeg(true); rec.active=false; paintRec(); }
   later(2,()=>{
     S.busy=false; S.tl=false; S.down=true;
     if(S.wifi){ S.wifi=false; wifiReason=" — power-hold released"; }
-    logS(`Camera is off — ${cfg("GSR_PARKING")?"an impact will wake it (Parking Monitor on)":"impacts are ignored (Parking Monitor off)"}`,"", `power-hold released (0x120b4020 ← 0) — G-sensor ${cfg("GSR_PARKING")?"armed (SetSensitity(sens+0xff) @0x34318)":"<b>not armed</b> — Parking Monitor OFF (SetSensitity(0) @0x34384)"}`);
+    logS(t(cfg("GSR_PARKING")?"L.down.on":"L.down.off"),"", `power-hold released (0x120b4020 ← 0) — G-sensor ${cfg("GSR_PARKING")?"armed (SetSensitity(sens+0xff) @0x34318)":"<b>not armed</b> — Parking Monitor OFF (SetSensitity(0) @0x34384)"}`);
     refresh(true);
   });
 }
 function exitLapse(){
   S.busy=true;
-  logS("Ignition on during time-lapse — the camera says \"driving mode\" and restarts","", `<span class="cgi">0x10437001</span> ACC on for ≥23 samples in the time-lapse (≈5–6 s) → ${P.tlExit.length?"accOn":"accOn.mp3 — not in this image"}${P.tlExitPause?`, ${P.tlExitPause} s pause (@0x351d4)`:""}, record stop, Wi-Fi off, 0.5 s, <b>reboot</b> (@0x344d0)`);
+  logS(t("L.exitTl"),"", `<span class="cgi">0x10437001</span> ACC on for ≥23 samples in the time-lapse (≈5–6 s) → ${P.tlExit.length?"accOn":"accOn.mp3 — not in this image"}${P.tlExitPause?`, ${P.tlExitPause} s pause (@0x351d4)`:""}, record stop, Wi-Fi off, 0.5 s, <b>reboot</b> (@0x344d0)`);
   enqueue(P.tlExit);
   if(P.stickyAccOn){ S.pmc58=true; logEl("", `<span style="color:var(--ink-3)">reboot helper writes 1 to PMC 0x120f0058 (@0x345fc) — the boot-time «driving» stays muted from now on</span>`); }
   later(P.tlExitPause,()=>{
@@ -1148,7 +1592,7 @@ function exitLapse(){
    Normal file then carries accOn at ≈3 s and a second prompt at ≈5.8 s. The same figure is used for
    .911/.918 (same boot path, not measured there) and for a cold start. */
 function startBoot(why){
-  logS(`Camera restarting — about ${P.bootGap} seconds without recording`,"", `<b>${why}</b> — the camera is down for ≈${P.bootGap} s, nothing is recorded`);
+  logS(t("L.reboot",{n:P.bootGap}),"", `<b>${why}</b> — the camera is down for ≈${P.bootGap} s, nothing is recorded`);
   S.booting=true; refresh(true);
 }
 function bootInit(){
@@ -1161,10 +1605,10 @@ function bootEnd(){
   if(S.bootWake){
     S.bootWake=false; S.down=true; S.waking=true;
     evt={active:true,t:0,name:stamp(simMs),fromSleep:true,fromLapse:false,seg:30,rate:mbps(),folder:P.wakeFolder};
-    logS("Impact woke the camera — recording a 30-second event clip to Event","ok",`Booted by the G-sensor (src=0) — publish 0x83000201, the same EMR path as a driving impact: ${P.wakeFolder}/F+R clip, 30 s (record.[N].emr_time; on the card 30–48 s, then a short Normal/ file and the power-off); Wi-Fi stays off, ACC voices muted until the clip ends`);
+    logS(t("L.woke"),"ok",`Booted by the G-sensor (src=0) — publish 0x83000201, the same EMR path as a driving impact: ${P.wakeFolder}/F+R clip, 30 s (record.[N].emr_time; on the card 30–48 s, then a short Normal/ file and the power-off); Wi-Fi stays off, ACC voices muted until the clip ends`);
     enqueue(P.wakeVoice); refresh(false); return;
   }
-  logS("Camera is on — recording to Normal","", `boot complete — <code>start.mp3</code>${S.acc?(!P.bootAccOn?", ACC live (no accOn.mp3 in this image)":(P.stickyAccOn&&S.pmc58)?", ACC live but accOn muted by 0x120f0058":", ACC live → accOn from the start thread (@0x331e0)"):""}, recording starts in Normal/`);
+  logS(t("L.on"),"", `boot complete — <code>start.mp3</code>${S.acc?(!P.bootAccOn?", ACC live (no accOn.mp3 in this image)":(P.stickyAccOn&&S.pmc58)?", ACC live but accOn muted by 0x120f0058":", ACC live → accOn from the start thread (@0x331e0)"):""}, recording starts in Normal/`);
   refresh(true);                                /* BOOT → DRIVING; the boot voices come from transition() */
 }
 function toggleNotes(){ document.body.classList.toggle("shownotes"); }
@@ -1176,7 +1620,7 @@ function watts(){
 }
 function paintPsu(){
   const th=CUTOFF[cfg("LOW_POWER")], V=S.volt, W=watts(), mA=V?W/V*1000:0;
-  $("cutlab").textContent="cut-off "+th.toFixed(1)+" V";
+  $("cutlab").textContent=t("psu.cut",{v:th.toFixed(1)});
   $("mV").textContent=V.toFixed(2);
   $("mA").textContent = mA>=10 ? Math.round(mA) : mA>0 ? mA.toFixed(2) : "0";
   $("mW").textContent = W>=1 ? W.toFixed(2) : W>0 ? W.toFixed(4) : "0.00";
@@ -1184,9 +1628,9 @@ function paintPsu(){
   document.querySelectorAll(".meter").forEach(m=>m.dataset.warn=warn);
   const armed=lbpArmed()&&!S.lowcut, k=Math.max(0,lvp.cnt+(lvp.first?1:0)), avg=k?lvp.sum/k:0, firstWin=P.fw&&lvp.first;   /* the 31-sample first window */
   $("psufoot").innerHTML = !ENG ? (
-      S.lowcut ? `<b>Battery protection:</b> the camera switched off to keep the car battery healthy. It comes back when you start the engine or reconnect the power.`
-    : armed ? `<b>Battery protection is on</b> (time-lapse). The camera switches off if the battery stays at or below <b>${th.toFixed(1)} V</b> for about a minute${k?` — current average ${avg.toFixed(2)} V`:""}.`
-    : `Battery protection works during time-lapse recording: the camera switches off if the battery stays below <b>${th.toFixed(1)} V</b> for about a minute. ${S.volt<=th?"The battery is already below the cut-off.":S.volt<12.4?"Engine off, battery draining.":S.volt<13.0?"Engine off, battery healthy.":"Engine running — the battery is charging."}`)
+      S.lowcut ? t("ps.cut")
+    : armed ? t("ps.armed",{v:th.toFixed(1),avg:k?t("ps.avg",{a:avg.toFixed(2)}):""})
+    : t("ps.idle",{v:th.toFixed(1),s:t(S.volt<=th?"ps.below":S.volt<12.4?"ps.drain":S.volt<13.0?"ps.healthy":"ps.charging")}))
     : S.lowcut ? `<b>Battery protection tripped</b> — the camera cut itself off to leave the car startable. It comes back on <b>ACC on</b> (engine start) or a <b>B+ reconnect</b>; raising the supply alone does nothing (no hysteresis).`
     : armed ? `<b>Battery protection armed</b> (time-lapse) — window <b>${Math.min(2,lvp.consec+1)} of 2</b>, sample ${k}/${LVP_N}${firstWin?" (first window: 31 samples ÷ 30, average reads 3.3 % high)":""}, running average <b>${k?avg.toFixed(2):"—"} V</b> vs cut-off ${th.toFixed(1)} V · one sample every 1.01 s; two windows at or below the cut-off in a row power the camera down, a window above resets the series.`
     : `<em>Battery protection is not armed</em> — it arms only when the time-lapse starts (LVP_Enable @0x35168) and stays armed until the camera reboots; ${S.volt<=th?`the supply is already at or below the ${th.toFixed(1)} V cut-off`:S.volt<12.4?`engine off, battery draining — cut-off ${th.toFixed(1)} V`:S.volt<13.0?"engine off, battery healthy":"engine running — the alternator is charging"}.`;
@@ -1217,9 +1661,12 @@ function drain(){
   const it=q.shift(); const m=META[it.clip];
   if(it.wait){ playing=true; setTimeout(()=>{ playing=false; q.unshift(Object.assign({},it,{wait:0})); drain(); }, it.wait*1000); return; }
   const muted = cfg("VOLUME")===0;
-  logS(`${it.clip==="beep"?"Camera beeps":it.clip==="start"?"Camera plays the start-up chime":`Camera says "${m.en}"${m.he?` — <span dir="rtl">${m.he}</span>`:""}`}${muted?" (muted in the app)":""}`,"", `<span class="snd">${clipFile(it.clip)}</span>${m.he?` — <span dir="rtl">${m.he}</span>`:""} <span style="color:var(--ink-2)">(${m.en})</span>${muted?' <span style="color:var(--ink-3)">· muted by app setting</span>':''}${it.note?` · <span style="color:var(--ink-3)">${it.note}</span>`:''}`);
+  const mean=t("v."+it.clip);
+  const simple=it.clip==="beep"?t("L.beep"):it.clip==="start"?t("L.chime")
+    :LANG==="he"?t("L.says",{m:m.he||mean}):t("L.says",{m:mean})+(m.he?` — <span dir="rtl">${m.he}</span>`:"");
+  logS(simple+(muted?t("L.muted"):""),"", `<span class="snd">${clipFile(it.clip)}</span>${m.he?` — <span dir="rtl">${m.he}</span>`:""} <span style="color:var(--ink-2)">(${m.en})</span>${muted?' <span style="color:var(--ink-3)">· muted by app setting</span>':''}${it.note?` · <span style="color:var(--ink-3)">${it.note}</span>`:''}`);
   if(muted){ setTimeout(drain,120); return; }
-  playing=true; speaking=true; showVoice(m);
+  playing=true; speaking=true; showVoice(m,it.clip);
   const a=AU[it.clip]; let fin=false;
   if(!a){ setTimeout(()=>{ playing=false; speaking=false; spkHold=1; setTimeout(drain,140); },900); return; }   /* no recording of this clip in the page: shown, not heard */
   const done=()=>{ if(fin)return; fin=true; a.removeEventListener("ended",done); playing=false; speaking=false; spkHold=1; setTimeout(drain,140); };
@@ -1228,18 +1675,19 @@ function drain(){
   try{ a.currentTime=0; const p=a.play(); if(p&&p.catch) p.catch(()=>setTimeout(done,800)); }catch(e){ setTimeout(done,800); }
   setTimeout(done,4000);
 }
-function showVoice(m){
+function showVoice(m,clip){
   $("voice").dataset.live="1";
-  $("vbody").innerHTML=m.he?`<div class="he">${m.he}</div><div class="en">${m.en}</div>`
-                           :`<div style="font-size:15px;color:var(--ink-2)">${m.en}</div>`;
+  const mean=t("v."+clip);   /* the camera speaks Hebrew; the meaning is shown in the page language */
+  $("vbody").innerHTML=m.he?(LANG==="he"?`<div class="he">${m.he}</div>`:`<div class="he">${m.he}</div><div class="en">${mean}</div>`)
+                           :`<div style="font-size:15px;color:var(--ink-2)">${mean}</div>`;
 }
 function setVoiceIdle(){
   $("voice").dataset.live="0";
-  const t=S.mode==="OFF"?"No power — connect B+ to start"
-        :S.mode==="BOOT"?"Booting…"
-        :S.mode==="SLEEP"?(cfg("GSR_PARKING")?"Powered down — G-sensor armed, an impact boots the camera":"Powered down — parking monitor OFF, impacts ignored")
-        :"Idle — waiting for the next event";
-  $("vbody").innerHTML=`<div class="idle">${t}</div>`;
+  const txt=S.mode==="OFF"?t("vi.off")
+        :S.mode==="BOOT"?t("vi.boot")
+        :S.mode==="SLEEP"?t(cfg("GSR_PARKING")?"vi.sleep.on":"vi.sleep.off")
+        :t("vi.idle");
+  $("vbody").innerHTML=`<div class="idle">${txt}</div>`;
 }
 /* The voice files. In .911 the two mode announcements sit in the wrong files, proved by hashing:
      res/audio/start.mp3   sha256 ab83457c…  = the "מצב חניה" (parking mode) recording
@@ -1284,36 +1732,37 @@ function refresh(sound){
   const prev=S.mode, next=computeMode(), waking=!!S.waking;
   if(next==="BOOT" && prev!=="BOOT") bootInit();
   $("mdot").style.background = {OFF:"#5A6676",SLEEP:"#5A6676",DRIVING:"#2E7DFF",PARKING:"#2E7DFF",BOOT:"#D97706"}[next];
-  $("mtext").textContent = waking?"WAKE":next;
+  $("mtext").textContent = t("mode."+(waking?"WAKE":next));
   /* indicator exactly as the firmware drives it: one blue LED on GPIO 4/5
      recording -> blink once a second (20 ticks x 50 ms) · not recording -> dark
      (the red LED is lit by the bootloader during a firmware update, not by the app) */
   if(ota.active){
     /* OTA start puts the LED on mode 4 = blink 100 ms; the bootloader lights red while writing */
     $("led").className = ota.phase>=3 ? "led redon" : "led blue100";
-    $("mtext").textContent = ota.phase>=4 ? "REBOOT" : "UPDATE";
+    $("mtext").textContent = t(ota.phase>=4 ? "mode.REBOOT" : "mode.UPDATE");
     $("mdot").style.background = ota.phase>=3 ? "#FF3B30" : "#2E7DFF";
-    $("recline").innerHTML = ota.phase===1 ? "receiving package "+ota.pct+"%"
+    $("recline").innerHTML = ENG ? (ota.phase===1 ? "receiving package "+ota.pct+"%"
       : ota.phase===2 ? "verifying CRC32"
-      : ota.phase===3 ? "<b>writing flash — do not remove power</b>" : "rebooting";
+      : ota.phase===3 ? "<b>writing flash — do not remove power</b>" : "rebooting")
+      : t("rl.ota"+ota.phase,{p:ota.pct});
   } else {
   const isRec = (next==="DRIVING"||next==="PARKING"||waking) && !S.appStop;
   $("led").className = next==="OFF" ? "led" : isRec ? "led blue1s" : "led";
   }
   $("recline").innerHTML = !ENG ? (
-      waking?"<b>Recording</b> an event clip (Event)"
-    : next==="OFF"?"No power — connect the power lead"
-    : next==="BOOT"?`Starting up — about ${P.bootGap} seconds`
-    : S.appStop?"Recording <b>stopped from the app</b>"
-    : next==="DRIVING"?"<b>Recording</b> — Normal"
-    : next==="PARKING"?"<b>Time-lapse recording</b> — Parking · "+PARKTXT[cfg("PARK_TIMER")]
-    : "Off — "+(cfg("GSR_PARKING")?"an impact wakes the camera":"impacts are ignored (Parking Monitor off)"))
+      waking?t("rl.wake")
+    : next==="OFF"?t("rl.off")
+    : next==="BOOT"?t("rl.boot",{n:P.bootGap})
+    : S.appStop?t("rl.appstop")
+    : next==="DRIVING"?t("rl.drive")
+    : next==="PARKING"?t("rl.park",{d:parkTxt(cfg("PARK_TIMER"))})
+    : t(cfg("GSR_PARKING")?"rl.sleep.on":"rl.sleep.off"))
     : waking?`<b>REC</b> impact clip → ${evt.folder||"Event"}/F + ${evt.folder||"Event"}/R`
     : next==="OFF"?"no power — connect B+"
     : next==="BOOT"?`<b>booting</b> — no recording for ≈${P.bootGap} s`
     : S.appStop?"recording <b>stopped from the app</b> (workmodecmd -cmd=stop)"
     : next==="DRIVING"?"<b>REC</b> normal loop → Normal/F + Normal/R"
-    : next==="PARKING"?"<b>REC</b> time-lapse → Parking/F + Parking/R · "+PARKTXT[cfg("PARK_TIMER")]
+    : next==="PARKING"?"<b>REC</b> time-lapse → Parking/F + Parking/R · "+parkTxt(cfg("PARK_TIMER"))
     : "low power — impact detection "+(cfg("GSR_PARKING")?"armed":"OFF");
   if(prev==="OFF" && next!=="OFF"){ S.wifi=true; S.wifiT=0; }   /* wifi_start runs at boot, before any ACC */
   if(next==="BOOT") S.wifi=false;
@@ -1330,12 +1779,12 @@ function refresh(sound){
   const wifiOn=(next!=="OFF" && S.wifi), w=$("wifi");
   w.dataset.on=wifiOn?"1":"0";
   w.querySelector("use").setAttribute("href",wifiOn?"#ic-wifi":"#ic-wifi-off");
-  $("wifitext").textContent=wifiOn?"Wi-Fi AP on · "+SSID:"Wi-Fi off";
+  $("wifitext").textContent=wifiOn?t("wifi.on",{ssid:SSID}):t("wifi.off");
   const cn=$("conn");
   cn.dataset.on=wifiOn?"1":"0";
-  $("conntext").textContent=wifiOn?"Connected · "+SSID:"Camera offline — Wi-Fi off";
+  $("conntext").textContent=wifiOn?t("conn.on",{ssid:SSID}):t("conn.offwifi");
   if(wifiOn!==lastWifi){
-    logS(wifiOn?"Wi-Fi on — the app can connect":"Wi-Fi off — the app disconnects","", wifiOn?`<span style="color:var(--drive-ink)">Wi-Fi on — Samsonix Pro reconnects</span>`
+    logS(t(wifiOn?"L.wifiOn":"L.wifiOff"),"", wifiOn?`<span style="color:var(--drive-ink)">Wi-Fi on — Samsonix Pro reconnects</span>`
                     :`<span style="color:var(--ink-3)">Wi-Fi off${wifiReason} — Samsonix Pro disconnects</span>`);
     lastWifi=wifiOn; wifiReason="";
     if(typeof appRender==="function") appRender();
@@ -1343,11 +1792,11 @@ function refresh(sound){
   const mic=!!cfg("AUDIO"), mp=$("micp");
   mp.dataset.on=mic?"1":"0";
   mp.querySelector("use").setAttribute("href",mic?"#ic-mic":"#ic-mic-off");
-  $("mictext").textContent=mic?"Mic on":"Mic off";
+  $("mictext").textContent=t(mic?"mic.on":"mic.off");
   $("rowA").dataset.dim=S.bplus?"0":"1";
   document.querySelectorAll("#chips .chip").forEach(el=>el.dataset.on=(el.dataset.s===next)?"1":"0");
   if(sound && next!==prev){
-    logS(MODE_TXT[next],"", `<b>${prev} → ${next}</b>`);
+    logS(modeTxt(next),"", `<b>${prev} → ${next}</b>`);
     if(next==="OFF") q=[];
     enqueue(transition(prev,next));
   }
@@ -1361,8 +1810,8 @@ function refresh(sound){
 function toggle(k){
   S[k]=!S[k];
   $(k==="bplus"?"swB":"swA").setAttribute("aria-pressed",S[k]);
-  logS(`${k==="bplus"?(S[k]?"Power connected":"Power disconnected"):(S[k]?"Ignition on":"Ignition off")}`,"", `${k==="bplus"?"B+":"ACC"} <b>${S[k]?"ON":"OFF"}</b>`);
-  if(k==="acc"&&!S.bplus) logS("Nothing happens — the camera has no power","", `<span style="color:var(--ink-3)">no effect — the camera has no power without B+</span>`);
+  logS(t(k==="bplus"?(S[k]?"L.bOn":"L.bOff"):(S[k]?"L.aOn":"L.aOff")),"", `${k==="bplus"?"B+":"ACC"} <b>${S[k]?"ON":"OFF"}</b>`);
+  if(k==="acc"&&!S.bplus) logS(t("L.noPower"),"", `<span style="color:var(--ink-3)">no effect — the camera has no power without B+</span>`);
   else if(k==="acc"&&P.fw&&!S.booting&&!S.lowcut)
     logEl("", `<span style="color:var(--ink-3)">ACCMNG samples the wire once a second — ${
       S.acc ? (S.down ? "the camera is down: ACC powers it up through a full boot"
@@ -1388,11 +1837,11 @@ function shakeCam(){
    The real builds do neither of the last two: a wake writes a fixed 30 s clip, and while the
    time-lapse runs an impact is a beep (.918/.929) or nothing (.911). */
 function impact(){
-  if(S.mode==="OFF"||S.booting){ shakeCam(); logS(`Impact — the camera is ${S.booting?"still starting up":"off"}`,"", `<span style="color:var(--ink-3)">impact — the camera is ${S.booting?"still booting":"not powered"}</span>`); return; }
+  if(S.mode==="OFF"||S.booting){ shakeCam(); logS(t(S.booting?"L.impBoot":"L.impOff"),"", `<span style="color:var(--ink-3)">impact — the camera is ${S.booting?"still booting":"not powered"}</span>`); return; }
   shakeCam();
   if(evt.active){
-    logS("Impact detected","", `<b>G-sensor impact</b>`);
-    logS("Already recording an event clip","", `<span style="color:var(--ink-3)">already writing the clip from the previous impact — ${P.fw?"du only (state1≠0), no new event, no extension":"this one adds nothing"}</span>`);
+    logS(t("L.imp"),"", `<b>G-sensor impact</b>`);
+    logS(t("L.impBusy"),"", `<span style="color:var(--ink-3)">already writing the clip from the previous impact — ${P.fw?"du only (state1≠0), no new event, no extension":"this one adds nothing"}</span>`);
     if(P.fw && !(P.speakerGate&&spkBusy())) enqueue([{clip:"beep"}]);
     /* seen on the card (.929, 2026-09-29): a second impact during the G-wake clip cost the front channel
        about 3 s of video (11:38:13 → 11:38:16) and the rear 0.8 s — observation, not modelled as a gap */
@@ -1403,7 +1852,7 @@ function impact(){
   if(P.fw){
     /* PDT_UI_ProcEmrRecEvent, gates in code order (reports/52 §3.3): the time-lapse flag first
        (du only, nothing else read), then the recorder running, then the speaker, then the clip */
-    logS("Impact detected","", asleep?`<b>G-sensor impact</b> — the camera is down`:`<b>G-sensor impact</b>`);
+    logS(t("L.imp"),"", asleep?`<b>G-sensor impact</b> — the camera is down`:`<b>G-sensor impact</b>`);
     if(lapsing){
       if(P.tlEvent){
         /* .930: the UI gate is gone for the G-sensor event (@0x33ee0–0x33efc): du → publish 0x83000201 →
@@ -1413,39 +1862,39 @@ function impact(){
         enqueue(P.tlImpact);
         if(rec.active){ closeSeg(true); rec.active=false; }
         evt={active:true,t:0,name:stamp(simMs),fromSleep:false,fromLapse:true,seg:30,rate:mbps(),folder:"Event"};
-        logS("30-second event clip recording to Event — time-lapse continues afterwards","ok",`Time-lapse interrupted — 30 s Event/F+R clip at full speed (may start ≈2 s after the impact; LVP is not handled while it runs, @0x35354), then back to the time-lapse`);
+        logS(t("L.impTl"),"ok",`Time-lapse interrupted — 30 s Event/F+R clip at full speed (may start ≈2 s after the impact; LVP is not handled while it runs, @0x35354), then back to the time-lapse`);
         refresh(false); return;
       }
-      if(P.tlImpact){ enqueue(P.tlImpact); logS("Beep only — no clip during time-lapse","", `<span style="color:var(--ink-3)">du only — lowFpsRecIng is set, no Event clip (@0x33dec); Parking Monitor and sensitivity not read</span>`); }
-      else logS("Ignored during time-lapse","", `<span style="color:var(--accent)">ignored — this build drops impacts while the time-lapse runs</span>`);
+      if(P.tlImpact){ enqueue(P.tlImpact); logS(t("L.impTlBeep"),"", `<span style="color:var(--ink-3)">du only — lowFpsRecIng is set, no Event clip (@0x33dec); Parking Monitor and sensitivity not read</span>`); }
+      else logS(t("L.impTlIgn"),"", `<span style="color:var(--accent)">ignored — this build drops impacts while the time-lapse runs</span>`);
       return;
     }
     if(asleep){
-      if(!cfg("GSR_PARKING")){ logS("Ignored — Parking Monitor is off","", `<span style="color:var(--accent)">ignored — the G-sensor was not armed at PowerOff (Parking Monitor OFF)</span>`); return; }
+      if(!cfg("GSR_PARKING")){ logS(t("L.impPmOff"),"", `<span style="color:var(--accent)">ignored — the G-sensor was not armed at PowerOff (Parking Monitor OFF)</span>`); return; }
       S.bootWake=true; startBoot("G-sensor INT wakes the PMC — the camera boots (src=0)"); return;
     }
-    if(!cfg("GSR_DRIVE")){ logS("Ignored — the G-sensor is off","", `<span style="color:var(--accent)">ignored — G-Sensor Sensitivity OFF sets an unreachable threshold (0xFFF0)</span>`); return; }
-    if(S.appStop){ logS("Ignored — recording is stopped","", `<span style="color:var(--ink-3)">ignored — the recorder is stopped (running≠1 @0x33e1c): no beep, no clip</span>`); return; }
-    if(P.speakerGate && spkBusy()){ logS("Missed — the camera was speaking at that moment","", `<span style="color:var(--accent)">dropped — a prompt is playing or just ended (speaker_busy @0x33e38, defect D2): no beep, no clip, no retry</span>`); return; }
+    if(!cfg("GSR_DRIVE")){ logS(t("L.impGsOff"),"", `<span style="color:var(--accent)">ignored — G-Sensor Sensitivity OFF sets an unreachable threshold (0xFFF0)</span>`); return; }
+    if(S.appStop){ logS(t("L.impStopped"),"", `<span style="color:var(--ink-3)">ignored — the recorder is stopped (running≠1 @0x33e1c): no beep, no clip</span>`); return; }
+    if(P.speakerGate && spkBusy()){ logS(t("L.impSpeak"),"", `<span style="color:var(--accent)">dropped — a prompt is playing or just ended (speaker_busy @0x33e38, defect D2): no beep, no clip, no retry</span>`); return; }
     enqueue(P.driveImpact);
     /* seen on the card (.929): the running Normal segment moves to Event/ and is extended — no gap */
     const t0=rec.active?rec.t:0, nm=rec.active?rec.name:stamp(simMs);
     rec.active=false;
     evt={active:true,t:t0,name:nm,fromSleep:false,fromLapse:false,seg:t0+30,rate:mbps()};
-    logS("Event clip saved to Event — the current video is protected","ok",`Running segment (${mmss(t0)}) moves to Event/ and is extended by 30 s (rec_emr_transfer @0xc3ca8) — no gap in the recording${P.lossNote?' <span style="color:var(--ink-3)">(on the card the front channel lost 0.4 s at the switch — observed, .929)</span>':''}`);
+    logS(t("L.impDrive"),"ok",`Running segment (${mmss(t0)}) moves to Event/ and is extended by 30 s (rec_emr_transfer @0xc3ca8) — no gap in the recording${P.lossNote?' <span style="color:var(--ink-3)">(on the card the front channel lost 0.4 s at the switch — observed, .929)</span>':''}`);
     refresh(false); return;
   }
   if(parked && !cfg("GSR_PARKING")){
-    logS("Impact detected","", `<b>G-sensor impact</b>`);
-    logS("Ignored — Parking Monitor is off","", `<span style="color:var(--accent)">ignored — Parking monitor is OFF in the app</span>`);
+    logS(t("L.imp"),"", `<b>G-sensor impact</b>`);
+    logS(t("L.impPmOff"),"", `<span style="color:var(--accent)">ignored — Parking monitor is OFF in the app</span>`);
     return;
   }
   if(S.mode==="DRIVING" && !cfg("GSR_DRIVE")){
-    logS("Impact detected","", `<b>G-sensor impact</b>`);
-    logS("Ignored — the G-sensor is off","", `<span style="color:var(--accent)">ignored — Driving G-sensor is OFF in the app</span>`);
+    logS(t("L.imp"),"", `<b>G-sensor impact</b>`);
+    logS(t("L.impGsOff"),"", `<span style="color:var(--accent)">ignored — Driving G-sensor is OFF in the app</span>`);
     return;
   }
-  logS("Impact detected","", asleep?`<b>G-sensor impact</b> — the camera was powered down; the sensor boots it`:`<b>G-sensor impact</b>`);
+  logS(t("L.imp"),"", asleep?`<b>G-sensor impact</b> — the camera was powered down; the sensor boots it`:`<b>G-sensor impact</b>`);
   /* Driving is the one case where a spoken confirmation is wrong: a pothole would make the
      camera talk at the driver all the way home. An impact on the move is a single short beep
      (vendor_918_fixes p.2); parked, the beep is followed by the emergency-recording word. */
@@ -1456,7 +1905,7 @@ function impact(){
   const seg = cfg("SPLIT");
   evt={active:true,t:0,name:stamp(simMs),fromSleep:asleep,fromLapse:lapsing,seg,rate:mbps()};
   if(asleep) S.waking=true;
-  logS(lapsing?"Recording the impact at full speed":asleep?"Camera woke up — recording an event clip":"Protected event clip recording","ok", lapsing ? `Time-lapse interrupted — recording the impact at full speed for ${mmss(seg)}`
+  logS(t(lapsing?"L.impFull":asleep?"L.impWoke":"L.impProt"),"ok", lapsing ? `Time-lapse interrupted — recording the impact at full speed for ${mmss(seg)}`
             : asleep  ? `Woken — recording normal video for ${mmss(seg)} (Wi-Fi stays off)`
                       : `Writing protected Event clip`);
   refresh(false);
@@ -1464,7 +1913,7 @@ function impact(){
 let holdT0=0, holdRaf=0;
 function holdStart(ev){
   if(ev&&ev.preventDefault) ev.preventDefault();
-  if(S.mode==="OFF"){ logS("Button pressed — the camera has no power","", `<span style="color:var(--ink-3)">button pressed — the camera has no power</span>`); return; }
+  if(S.mode==="OFF"){ logS(t("L.btnOff"),"", `<span style="color:var(--ink-3)">button pressed — the camera has no power</span>`); return; }
   holdT0=Date.now(); $("camkey").dataset.hold="1";
   $("holdbar").dataset.on="1"; $("holdlab").dataset.on="1"; holdTick();
 }
@@ -1482,10 +1931,10 @@ function holdTick(){
   if(!holdT0) return;
   const ms=Date.now()-holdT0, act=holdAct(ms);
   $("holdfill").style.width=Math.min(100,ms/8000*100)+"%";
-  $("holdsec").textContent=(ms/1000).toFixed(1)+" s";
-  $("holdact").textContent = act==="reset" ? "release → FACTORY RESET"
-                           : act==="wifi"  ? `release → Wi-Fi ${S.wifi?"OFF":"ON"}`
-                           :                 "release → save video (protected clip)";
+  $("holdsec").textContent=(ms/1000).toFixed(1)+" "+t("u.s");
+  $("holdact").textContent = act==="reset" ? t("hold.reset")
+                           : act==="wifi"  ? t(S.wifi?"hold.wifiOff":"hold.wifiOn")
+                           :                 t("hold.emr");
   $("holdbar").dataset.act=$("holdlab").dataset.act=act;
   holdRaf=requestAnimationFrame(holdTick);
 }
@@ -1496,26 +1945,26 @@ function holdEnd(cancel){
   $("holdfill").style.width="0";
   if(cancel) return;
   const act=holdAct(ms);
-  logS(`Button held ${(ms/1000).toFixed(1)} s`,"", `<b>Button</b> held ${(ms/1000).toFixed(1)} s`);
+  logS(t("L.held",{s:(ms/1000).toFixed(1)}),"", `<b>Button</b> held ${(ms/1000).toFixed(1)} s`);
   if(act==="reset"){
-    logS("Factory reset","", `<span style="color:var(--accent)">over 7 s — factory reset</span>`);
+    logS(t("L.reset"),"", `<span style="color:var(--accent)">over 7 s — factory reset</span>`);
     factoryReset(); return;
   }
   if(act==="emr"){
     /* short press = manual emergency recording, dropped while the time-lapse runs (0x35624) */
     if(S.mode==="PARKING"){
-      logS("Short press ignored during time-lapse","", `<span style="color:var(--ink-3)">short press ignored — the time-lapse recording is running</span>`);
+      logS(t("L.shortTl"),"", `<span style="color:var(--ink-3)">short press ignored — the time-lapse recording is running</span>`);
       return;
     }
-    if(evt.active){ logS("Already saving a clip","", `<span style="color:var(--ink-3)">already writing a protected clip</span>`); return; }
-    logS("Saving the current video as a protected clip","", `<span style="color:var(--drive-ink)">short press — the current video is saved as a protected 30 s Event clip</span>`);
+    if(evt.active){ logS(t("L.already"),"", `<span style="color:var(--ink-3)">already writing a protected clip</span>`); return; }
+    logS(t("L.saving"),"", `<span style="color:var(--drive-ink)">short press — the current video is saved as a protected 30 s Event clip</span>`);
     enqueue([{clip:"emr"}]);
     if(rec.active){ closeSeg(); rec.active=false; }
     const asleep=(S.mode==="SLEEP");
     evt={active:true,t:0,name:stamp(simMs),fromSleep:asleep,fromLapse:false,
          seg:P.fw?30:cfg("SPLIT"),rate:mbps()};
     if(asleep) S.waking=true;
-    logS("Protected clip recording to Event","ok","Writing protected Event clip");
+    logS(t("L.protRec"),"ok","Writing protected Event clip");
     refresh(false); return;
   }
   S.wifi=!S.wifi; S.wifiT=0;
@@ -1527,97 +1976,134 @@ function scenario(kind){
   if(kind==="bench"){
     if(!S.acc){S.acc=true;$("swA").setAttribute("aria-pressed",true);}
     if(!S.bplus){S.bplus=true;$("swB").setAttribute("aria-pressed",true);}
-    logS("Power and ignition connected","","Bench — B+ and ACC connected together"); refresh(true);
+    logS(t("L.bench"),"","Bench — B+ and ACC connected together"); refresh(true);
   }
   if(kind==="engineoff"&&S.acc) toggle('acc');
   if(kind==="engineon"){ if(!S.bplus) toggle('bplus'); if(!S.acc) toggle('acc'); }
 }
 
-/* ---- Samsonix Pro: faithful screen replica with nav stack ---- */
-let appNav=null;
-const valLabel=k=>{const c=CFG[k];return (c.opts.find(o=>o[0]===c.v)||[,""])[1];};
-function navRow(l,v){
-  return `<button class="pitem" onclick="appNote('${l.replace(/'/g,"")}')"><span class="pl">${l}</span>`+
+/* ---- Samsonix Pro: faithful screen replica with nav stack. Labels, options, hints and dialogs
+   come from APP_L10N (the app's own wording per language); the rows and their order follow the
+   settings screen of the app as photographed on the camera. ---- */
+let appNav=null, appDlg=null;
+const appLabel=k=>(APP.rows&&APP.rows[k])||APP_L10N.en.rows[k]||(CFG[k]&&CFG[k].label)||k;
+function valLabel(k){
+  const c=CFG[k], o=(APP.opts&&APP.opts[k])||APP_L10N.en.opts[k];
+  if(o&&o[c.v]!==undefined) return o[c.v];
+  return (c.opts.find(x=>x[0]===c.v)||[,""])[1];     /* model-dependent values (resolution) stay in CFG */
+}
+/* The rows of the settings screen, in the app's order. A row whose wording is not verified in the
+   app's language (the mirror switch is only on the R588 captures, English) is left out there. The
+   recording start/stop command is a preview-screen button in the real app, not a settings row, so
+   the buyer view does not list it; the engineering view keeps it for the start/stop voices. */
+function menuRows(){
+  const m=["WIFI_NAME","WIFI_PW","MEDIAMODE","SPLIT","AUDIO","GSR_DRIVE","GSR_PARKING","PARK_TIMER","LOW_FPS"];
+  if(APP.rows.MIRROR) m.push("MIRROR");
+  m.push("FLIP","LOW_POWER","SPEED","VOLUME","FORMAT","RESET","FW");
+  if(ENG) m.push("RECCMD");
+  return m;
+}
+function navRow(l,v,act){
+  return `<button class="pitem" onclick="${act}"><span class="pl">${l}</span>`+
          (v?`<span class="pv">${v}</span>`:"")+`<span class="pchev">&rsaquo;</span></button>`;
 }
 function rowHTML(k){
-  if(k==="WIFI_NAME") return navRow("change wifi name",SSID);
-  if(k==="WIFI_PW")   return navRow("change wifi password","");
-  if(k==="FORMAT")    return `<button class="pitem" onclick="formatSD()"><span class="pl">Format Device</span><span class="pchev">&rsaquo;</span></button>`;
-  if(k==="RESET")     return `<button class="pitem" onclick="factoryReset()"><span class="pl">Restore factory settings</span><span class="pchev">&rsaquo;</span></button>`;
-  if(k==="FW")        return `<button class="pitem" onclick="startOta()"><span class="pl">Firmware version</span><span class="pv">${fwVer()}</span><span class="pchev">&rsaquo;</span></button>`;
-  if(k==="RECCMD")    return `<button class="pitem" onclick="appRecCmd()"><span class="pl">Recording</span><span class="pv">${S.appStop?"stopped · start":"running · stop"}</span><span class="pchev">&rsaquo;</span></button>`;
-  const c=CFG[k];
-  if(c.toggle) return `<div class="pitem" data-static="1"><span class="pl">${c.label}</span>
-      <button class="ptoggle" aria-pressed="${c.v?"true":"false"}" aria-label="${c.label}" onclick="pick('${k}',${c.v?0:1})"></button></div>`;
-  return `<button class="pitem" onclick="appOpen('${k}')"><span class="pl">${c.label}</span>
+  if(k==="WIFI_NAME") return navRow(appLabel(k),SSID,"appDialog('wifiName')");
+  if(k==="WIFI_PW")   return navRow(appLabel(k),"","appDialog('wifiPw')");
+  if(k==="FORMAT")    return navRow(appLabel(k),"","appDialog('format')");
+  if(k==="RESET")     return navRow(appLabel(k),"","appDialog('reset')");
+  /* the app shows the firmware version as plain text (no chevron); the engineering view keeps the update demo on it */
+  if(k==="FW")        return ENG ? navRow(appLabel(k),fwVer(),"startOta()")
+                                 : `<div class="pitem" data-static="1"><span class="pl">${appLabel(k)}</span><span class="pv">${fwVer()}</span></div>`;
+  if(k==="RECCMD")    return `<button class="pitem" onclick="appRecCmd()"><span class="pl">${t("app.rec")}</span><span class="pv">${t(S.appStop?"app.rec.stop":"app.rec.run")}</span><span class="pchev">&rsaquo;</span></button>`;
+  const c=CFG[k], hint=(APP.hints&&APP.hints[k])||(ENG&&c.hint)||"";
+  if(c.toggle) return `<div class="pitem" data-static="1"><span class="pl">${appLabel(k)}</span>
+      <button class="ptoggle" aria-pressed="${c.v?"true":"false"}" aria-label="${appLabel(k)}" onclick="pick('${k}',${c.v?0:1})"></button></div>`
+      + (hint?`<div class="phint">${hint}</div>`:"");
+  return `<button class="pitem" onclick="appOpen('${k}')"><span class="pl">${appLabel(k)}</span>
       <span class="pv">${valLabel(k)}</span><span class="pchev">&rsaquo;</span></button>`
-      + (c.hint?`<div class="phint">${c.hint}</div>`:"");
+      + (hint?`<div class="phint">${hint}</div>`:"");
 }
 function appConnected(){ return S.mode!=="OFF" && S.wifi; }
 function appRender(){
-  const t=$("ptitle"), b=$("pbody"), back=$("pback");
+  const tt=$("ptitle"), b=$("pbody"), back=$("pback"), dl=$("pdlg");
+  if(dl) dl.innerHTML="";
   if(ota.active){
-    t.textContent="Firmware update"; back.hidden=true;
-    const step={1:"Sending package to the camera",2:"Verifying package",3:"Writing firmware",4:"Camera restarting"}[ota.phase];
-    const warn = ota.phase===3 ? `<div style="color:#E8452C;font-size:13px;margin-top:10px">Do not remove power</div>` : "";
-    b.innerHTML=`<div class="poff" style="text-align:left">
-        <div class="pofft">${step}</div>
-        <div class="poffd">${fwVer()} &rarr; new package (5.9 MB)</div>
+    tt.textContent=t("ota.t"); back.hidden=true; appDlg=null;
+    const warn = ota.phase===3 ? `<div style="color:#E8452C;font-size:13px;margin-top:10px">${t("ota.warn")}</div>` : "";
+    b.innerHTML=`<div class="poff" style="text-align:start">
+        <div class="pofft">${t("ota.s"+ota.phase)}</div>
+        <div class="poffd">${t("ota.pkg",{v:fwVer()})}</div>
         <div style="height:6px;border-radius:3px;background:#E9E9EC;overflow:hidden;margin-top:14px">
           <i style="display:block;height:100%;background:#F4511E;width:${ota.phase===1?ota.pct:100}%"></i></div>
         <div style="font-family:var(--mono);font-size:11.5px;color:#8A8A8E;margin-top:8px">
-          step ${ota.phase} of 4${ota.phase===1?" · "+ota.pct+"%":""}</div>${warn}
+          ${t("ota.step",{n:ota.phase})}${ota.phase===1?" · "+ota.pct+"%":""}</div>${warn}
       </div>`;
     return;
   }
   if(!appConnected()){
-    t.textContent="settings"; back.hidden=true; appNav=null;
+    tt.textContent=APP.title; back.hidden=true; appNav=null; appDlg=null;
     b.innerHTML=`<div class="poff">
         <svg><use href="#ic-wifi-off"/></svg>
-        <div class="pofft">Camera not connected</div>
-        <div class="poffd">The camera's Wi-Fi is off, so the app cannot reach it.<br>
-        Press the button on the camera to switch Wi-Fi back on — the app reconnects by itself.</div>
-        <div class="poffb">waiting for ${SSID}</div>
+        <div class="pofft">${t("app.nc.t")}</div>
+        <div class="poffd">${t("app.nc.d")}</div>
+        <div class="poffb">${t("app.nc.wait",{ssid:SSID})}</div>
       </div>`;
     return;
   }
   if(appNav===null){
-    t.textContent="settings"; back.hidden=true;
-    b.innerHTML=`<div class="plist">${MENU.map(rowHTML).join("")}</div>`;
+    tt.textContent=APP.title; back.hidden=true;
+    b.innerHTML=`<div class="plist">${menuRows().map(rowHTML).join("")}</div>`;
   }else{
-    const c=CFG[appNav];
-    t.textContent=c.label; back.hidden=false;
+    const c=CFG[appNav], ol=(APP.opts&&APP.opts[appNav])||APP_L10N.en.opts[appNav]||{};
+    tt.textContent=appLabel(appNav); back.hidden=false;
     /* .929 dropped OFF from the G-Sensor Sensitivity value-set (reports/51 §3); Planned keeps it out too — LOW is the floor */
     const opts=c.opts.filter(([v])=>!(appNav==="GSR_DRIVE"&&P.noGsrOff&&v===0));
     b.innerHTML=`<div class="plist">${opts.map(([v,l])=>
-      `<button class="pitem" onclick="pick('${appNav}',${v})"><span class="pl">${l}</span>`+
+      `<button class="pitem" onclick="pick('${appNav}',${v})"><span class="pl">${ol[v]!==undefined?ol[v]:l}</span>`+
       (v===c.v?`<span class="pcheck">&#10003;</span>`:"")+`</button>`).join("")}</div>`;
+  }
+  /* the app's modal dialogs: text inputs for the Wi-Fi name / password, a question for format and reset */
+  if(appDlg && dl){
+    const d=(APP.dlg&&APP.dlg[appDlg])||APP_L10N.en.dlg[appDlg];
+    dl.innerHTML=`<div class="pdim" onclick="if(event.target===this)appDlgClose()"><div class="pdlg" role="dialog">${
+      typeof d==="string" ? `<div class="dm">${d}</div>`
+      : `<div class="dt">${d.title}</div>${d.ph.map(p=>`<input class="din" placeholder="${p}">`).join("")}`
+    }<div class="dbtns"><button type="button" class="dcancel" onclick="appDlgClose()">${APP.dlg.cancel}</button><button type="button" class="dok" onclick="appDlgOk()">${APP.dlg.ok}</button></div></div></div>`;
   }
 }
 function appOpen(k){ S.wifiT=0; appNav=k; appRender(); }
+function appDialog(k){ S.wifiT=0; appDlg=k; appRender(); }
+function appDlgClose(){ appDlg=null; appRender(); }
+function appDlgOk(){
+  const k=appDlg; appDlg=null; S.wifiT=0;
+  if(k==="format") formatSD();
+  else if(k==="reset") factoryReset();
+  else appNote(appLabel(k==="wifiName"?"WIFI_NAME":"WIFI_PW"));   /* SSID / password changes are not emulated */
+  appRender();
+}
 /* workmodecmd.cgi?-act=set&-cmd=stop|start (@0x2b094). From .929 the camera speaks here, from a
    snapshot of the recorder taken before the call (@0x2b210/0x2b268): stop is announced only if
    something was running, start only if nothing was; the prompt is queued before the result. */
 function appRecCmd(){
   S.wifiT=0;
   const stop=!S.appStop, running=rec.active||evt.active;
-  logS(`App: ${stop?"stop":"start"} recording`,"", `<span class="cgi">workmodecmd.cgi?-act=set&amp;-cmd=${stop?"stop":"start"}</span>`);
-  if(S.mode!=="DRIVING" && S.mode!=="PARKING"){ logS(`Nothing to ${stop?"stop":"start"} — the camera is not recording`,"", `<span style="color:var(--ink-3)">nothing to ${stop?"stop":"start"} — the recorder is not running in this state</span>`); return; }
+  logS(t(stop?"L.appStop":"L.appStart"),"", `<span class="cgi">workmodecmd.cgi?-act=set&amp;-cmd=${stop?"stop":"start"}</span>`);
+  if(S.mode!=="DRIVING" && S.mode!=="PARKING"){ logS(t(stop?"L.nothingStop":"L.nothingStart"),"", `<span style="color:var(--ink-3)">nothing to ${stop?"stop":"start"} — the recorder is not running in this state</span>`); return; }
   if(P.appRecVoice){ if(stop&&running) enqueue([{clip:"stopRec"}]); else if(!stop&&!running) enqueue([{clip:"startRec"}]); }
   else logEl("", `<span style="color:var(--ink-3)">silent — this build does not announce start/stop from the app</span>`);
   S.appStop=stop;
   refresh(false); appRender();
 }
 function appBack(){ appNav=null; appRender(); }
-function appNote(l){ logS(`${l} — not in this demo`,"", `<span style="color:var(--ink-3)">${l} — not emulated</span>`); }
+function appNote(l){ logS(t("L.notdemo",{l}),"", `<span style="color:var(--ink-3)">${l} — not emulated</span>`); }
 function pick(k,v){
   S.wifiT=0;                     /* the phone is in use, so the link is not idle */
   const c=CFG[k];
   if(c.v!==v){
     const prevTimer=cfg("PARK_TIMER"); c.v=v;
-    const lbl=c.toggle?(v?"On":"off"):valLabel(k);
-    logS(`App setting: ${c.label} → ${lbl}`,"", `<span class="cgi">setcommparam.cgi?-type=${c.cgi}&amp;-value=${v}</span> → ${c.label}: <b>${lbl}</b>`);
+    const lbl=c.toggle?t(v?"L.on1":"L.off1"):valLabel(k);
+    logS(t("L.appset",{l:appLabel(k),v:lbl}),"", `<span class="cgi">setcommparam.cgi?-type=${c.cgi}&amp;-value=${v}</span> → ${appLabel(k)}: <b>${lbl}</b>`);
     if(S.mode!=="DRIVING")
       logEl("", `<span style="color:var(--ink-3)">on the real camera this needs Wi-Fi — reachable only while driving</span>`);
     if(k==="SPLIT"&&rec.active){ closeSeg(); startSeg(); }
@@ -1633,16 +2119,16 @@ function formatSD(){
   card={used:0,clips:[]};
   if(rec.active){ startSeg(); }
   logEl("", `<span class="cgi">sdcommand.cgi?-cmd=format</span>`);
-  logS("Memory card formatted — all videos erased","ok","SD card formatted — all clips erased (FAT32, 64K clusters)");
+  logS(t("L.fmt"),"ok","SD card formatted — all clips erased (FAT32, 64K clusters)");
   if(P.fw) logEl("", `<span style="color:var(--ink-3)">no voice — startformatCard.mp3 is not called (.930 removed the call @0x34ad8; earlier builds never reached it); getsdinfo reports status=1 while formatting, recording resumes ≈10 s later</span>`);
   paintClips(); paintRec();
 }
 function startOta(){
-  if(S.mode==="OFF"){ logS("The camera has no power","", `<span style="color:var(--ink-3)">no power</span>`); return; }
-  if(!S.wifi){ logS("Wi-Fi is off — the app cannot reach the camera","", `<span style="color:var(--ink-3)">app cannot reach the camera — Wi-Fi is off</span>`); return; }
+  if(S.mode==="OFF"){ logS(t("L.otaNoPower"),"", `<span style="color:var(--ink-3)">no power</span>`); return; }
+  if(!S.wifi){ logS(t("L.otaNoWifi"),"", `<span style="color:var(--ink-3)">app cannot reach the camera — Wi-Fi is off</span>`); return; }
   if(ota.active) return;
   ota={active:true,phase:1,t:0,pct:0};
-  logS("Firmware update starting","", `<span class="cgi">checkupgradepktinfo.cgi?&-pktlen=...</span> → package announced, camera ready`);
+  logS(t("L.otaStart"),"", `<span class="cgi">checkupgradepktinfo.cgi?&-pktlen=...</span> → package announced, camera ready`);
   enqueue([{clip:"ota"}]);
   if(rec.active){ closeSeg(); rec.active=false; }
   refresh(false); appRender();
@@ -1651,21 +2137,30 @@ function startOta(){
    Wi-Fi down, wait 2 s, reload every field of paramdef, wait 0.5 s, sync and reboot. */
 function factoryReset(){
   const D=Object.assign({MEDIAMODE:6,SPLIT:60,AUDIO:1,GSR_DRIVE:1,GSR_PARKING:0,PARK_TIMER:0,
-           LOW_FPS:333,MIRROR:1,FLIP:0,LOW_POWER:0,VOLUME:80},P.factory||{});  /* = paramdef selVal; .930 overrides G-sensor/Monitor to MIDDLE */
+           LOW_FPS:333,MIRROR:1,FLIP:0,LOW_POWER:0,SPEED:0,VOLUME:80},P.factory||{});  /* = paramdef selVal; .930 overrides G-sensor/Monitor to MIDDLE */
   enqueue([{clip:"reset"}]);
   if(P.stickyAccOn){ S.pmc58=true; logEl("", `<span style="color:var(--ink-3)">FactoryReset writes 1 to PMC 0x120f0058 (@0x3486c) — the boot-time «driving» stays muted</span>`); }
   if(rec.active){ closeSeg(); rec.active=false; }
   if(S.wifi){ S.wifi=false; wifiReason=" — factory reset"; }
   logEl("", `<span class="cgi">reset.cgi</span>`);
-  logS("Factory reset — recording stops, Wi-Fi off","", "Indicator goes solid, recording stops, Wi-Fi drops");
+  logS(t("L.frStart"),"", "Indicator goes solid, recording stops, Wi-Fi drops");
   setTimeout(()=>{
     for(const k in D) CFG[k].v=D[k];
     forgetCfg(); appNav=null; appRender();
-    logS("Settings back to factory defaults","ok",`All parameters reloaded from paramdef — G-sensor ${valLabel("GSR_DRIVE")}, Parking monitor ${valLabel("GSR_PARKING")}, time lapse ${valLabel("PARK_TIMER")}`);
-    logS("Wi-Fi name and password back to R588_… / 12345678","", `Wi-Fi name and password back to the factory pair <b>R588_…</b> / <b>12345678</b>`);
-    setTimeout(()=>{ logS("Camera restarts","", "Camera reboots"); refresh(true); },700);
+    logS(t("L.frDone"),"ok",`All parameters reloaded from paramdef — G-sensor ${valLabel("GSR_DRIVE")}, Parking monitor ${valLabel("GSR_PARKING")}, time lapse ${valLabel("PARK_TIMER")}`);
+    logS(t("L.frWifi"),"", `Wi-Fi name and password back to the factory pair <b>R588_…</b> / <b>12345678</b>`);
+    setTimeout(()=>{ logS(t("L.frReboot"),"", "Camera reboots"); refresh(true); },700);
   },2000);
 }
+applyI18n();
+/* on a desktop screen the buyer view fits the console to the first screen and scrolls to the how-to below */
+function fitLayout(){
+  const l=document.querySelector(".layout"); if(!l) return;
+  if(ENG || !matchMedia("(min-width:1080px) and (min-height:640px)").matches){ l.style.height=""; return; }
+  const top=l.getBoundingClientRect().top+window.scrollY;
+  l.style.height=Math.max(560, window.innerHeight-top-16)+"px";
+}
+fitLayout(); window.addEventListener("resize",fitLayout);
 loadCfg();
 loadFw();
 appRender();
@@ -1714,7 +2209,7 @@ setVoiceIdle(); paintRec(); paintClips(); refresh(false);
 /* Auto-update: GitHub Pages / the browser can serve a cached build, so the page polls its own
    source and reloads the moment a newer version is deployed — no Ctrl+F5. SIM_BUILD is stamped
    automatically on every deploy; the reload uses a ?v= query to bypass the cache for certain. */
-const SIM_BUILD="1790856122";
+const SIM_BUILD="1791275907";
 (function(){
   let busy=false;
   async function check(){
