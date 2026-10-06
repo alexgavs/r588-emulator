@@ -1765,7 +1765,9 @@ function refresh(sound){
     : next==="PARKING"?"<b>REC</b> time-lapse → Parking/F + Parking/R · "+parkTxt(cfg("PARK_TIMER"))
     : "low power — impact detection "+(cfg("GSR_PARKING")?"armed":"OFF");
   if(prev==="OFF" && next!=="OFF"){ S.wifi=true; S.wifiT=0; }   /* wifi_start runs at boot, before any ACC */
-  if(next==="BOOT") S.wifi=false;
+  /* the service thread starts the AP as soon as the app is up (app_network_start @0x33318, no ACC
+     condition), so the network is there from power-on; a G-sensor wake keeps it off */
+  if(next==="BOOT"){ S.wifi=!S.bootWake; S.wifiT=0; }
   if(next==="DRIVING" && prev!=="DRIVING"){ S.wifi=true; S.wifiT=0; S.parkT=0; S.parkDone=false; }
   if(next==="PARKING" && prev!=="PARKING") lvpArm();       /* LVP_Enable(1) @0x35168 — the only arming point */
   if(next==="OFF"){ S.parkT=0; S.parkDone=false; S.down=false; S.tl=false; S.booting=false; S.busy=false; S.bootWake=false; fwGen++; lvpReset();
@@ -2209,7 +2211,7 @@ setVoiceIdle(); paintRec(); paintClips(); refresh(false);
 /* Auto-update: GitHub Pages / the browser can serve a cached build, so the page polls its own
    source and reloads the moment a newer version is deployed — no Ctrl+F5. SIM_BUILD is stamped
    automatically on every deploy; the reload uses a ?v= query to bypass the cache for certain. */
-const SIM_BUILD="1791275907";
+const SIM_BUILD="1791276429";
 (function(){
   let busy=false;
   async function check(){
