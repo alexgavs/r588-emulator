@@ -830,6 +830,7 @@ document.documentElement.dir=RTL?"rtl":"ltr";
 function setLang(l){
   if(!LANGS[l]) return;
   try{ localStorage.setItem("r588sim.lang",l); }catch(e){}
+  forgetCfg();   /* a new language starts a clean demo: camera off, app settings at factory values */
   const q=new URLSearchParams(location.search||""); q.set("lang",l); q.delete("v");
   location.replace(location.pathname+"?"+q.toString());
 }
@@ -2211,7 +2212,7 @@ setVoiceIdle(); paintRec(); paintClips(); refresh(false);
 /* Auto-update: GitHub Pages / the browser can serve a cached build, so the page polls its own
    source and reloads the moment a newer version is deployed — no Ctrl+F5. SIM_BUILD is stamped
    automatically on every deploy; the reload uses a ?v= query to bypass the cache for certain. */
-const SIM_BUILD="1791276429";
+const SIM_BUILD="1791276958";
 (function(){
   let busy=false;
   async function check(){
