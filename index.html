@@ -1633,7 +1633,18 @@ const APP_LANG=(LANG==="ar")?"he":LANG;
 const APP=APP_L10N[APP_LANG]||APP_L10N.en;
 /* every log entry can carry two wordings: `simple` for the buyer, `html` for the engineer.
    An entry with no simple wording is an internal detail and is not shown in the simple view. */
+/* Timing trace in the browser console (both views): [R588 +page s | Δ since the last user action] */
+const TR={t0:performance.now(),mark:performance.now(),what:"page load",on:true};
+function trace(kind,msg){
+  if(!TR.on) return; const n=performance.now();
+  const txt=String(msg||"").replace(/<[^>]+>/g,"").replace(/\s+/g," ").trim();
+  console.log(`%c[R588 +${((n-TR.t0)/1000).toFixed(2)}s | Δ${((n-TR.mark)/1000).toFixed(2)}s after ${TR.what}] %c${kind}%c ${txt}`,
+    "color:#888","color:#c44900;font-weight:600","color:inherit");
+}
+function traceMark(what){ TR.mark=performance.now(); TR.what=what; trace("ACTION",what); }
+window.R588TRACE=TR;   /* R588TRACE.on=false to silence */
 function logEl(cls,html,simple){
+  trace("log", (ENG||simple==null)?html:simple);
   if(!ENG){ if(simple===undefined||simple===null) return; html=simple; }
   const ul=$("log"); const e=ul.querySelector(".empty"); if(e) ul.innerHTML="";
   const li=document.createElement("li");
@@ -2089,6 +2100,7 @@ function drain(){
   setTimeout(done,4000);
 }
 function showVoice(m,clip){
+  trace("VOICE", clip+(m&&m.he?" — "+m.he:"")+(m&&m.en?" ("+m.en+")":""));
   $("voice").dataset.live="1";
   const mean=t("v."+clip);   /* the camera speaks Hebrew; the meaning is shown in the page language */
   $("vbody").innerHTML=m.he?(LANG==="he"?`<div class="he">${m.he}</div>`:`<div class="he">${m.he}</div><div class="en">${mean}</div>`)
@@ -2219,6 +2231,7 @@ function refresh(sound){
     enqueue(transition(prev,next));
   }
   if(next!==prev) S.appStop=false;      /* a stop from the app lasts until the recorder is restarted by a mode change */
+  if(prev!==next) trace("MODE",prev+" → "+next);
   S.mode=next; setRecording(next);
   /* the phone panel reads S.mode, and S.mode is only settled here — render it last,
      otherwise the app keeps showing the previous state */
@@ -2228,6 +2241,7 @@ function refresh(sound){
 }
 function toggle(k){
   S[k]=!S[k];
+  traceMark((k==="bplus"?"B+ ":"ACC ")+(S[k]?"ON":"OFF"));
   $(k==="bplus"?"swB":"swA").setAttribute("aria-pressed",S[k]);
   logS(t(k==="bplus"?(S[k]?"L.bOn":"L.bOff"):(S[k]?"L.aOn":"L.aOff")),"", `${k==="bplus"?"B+":"ACC"} <b>${S[k]?"ON":"OFF"}</b>`);
   if(k==="acc"&&!S.bplus) logS(t("L.noPower"),"", `<span style="color:var(--ink-3)">no effect — the camera has no power without B+</span>`);
@@ -2256,6 +2270,7 @@ function shakeCam(){
    The real builds do neither of the last two: a wake writes a fixed 30 s clip, and while the
    time-lapse runs an impact is a beep (.918/.929) or nothing (.911). */
 function impact(){
+  traceMark("IMPACT (mode "+S.mode+")");
   if(S.mode==="OFF"||S.booting){ shakeCam(); logS(t(S.booting?"L.impBoot":"L.impOff"),"", `<span style="color:var(--ink-3)">impact — the camera is ${S.booting?"still booting":"not powered"}</span>`); return; }
   shakeCam();
   if(evt.active){
@@ -2812,7 +2827,7 @@ if(!ENG) bvInit();
 /* Auto-update: GitHub Pages / the browser can serve a cached build, so the page polls its own
    source and reloads the moment a newer version is deployed — no Ctrl+F5. SIM_BUILD is stamped
    automatically on every deploy; the reload uses a ?v= query to bypass the cache for certain. */
-const SIM_BUILD="1791360167";
+const SIM_BUILD="1791362519";
 (function(){
   let busy=false;
   async function check(){
